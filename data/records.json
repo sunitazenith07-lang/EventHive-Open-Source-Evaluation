@@ -1,0 +1,76 @@
+[
+  {
+    "id": 1,
+    "title": "AI Workshop",
+    "category": "Workshop",
+    "date": "2026-11-01",
+    "capacity": 100,
+    "registered_count": 10,
+    "status": "Published",
+    "description": "Intro workshop",
+    "attendees": [
+      "s1@example.org"
+    ],
+    "venue": "Innovation Hall"
+  },
+  {
+    "id": 2,
+    "title": "Open Day",
+    "category": "Networking",
+    "date": "2026-11-03",
+    "capacity": 150,
+    "registered_count": 20,
+    "status": "Draft",
+    "description": "Campus open day",
+    "attendees": [],
+    "venue": "Main Lawn"
+  },
+  {
+    "id": 3,
+    "title": "Hackathon",
+    "category": "Competition",
+    "date": "2026-11-05",
+    "capacity": 80,
+    "registered_count": 80,
+    "status": "Cancelled",
+    "description": "Weekend hackathon",
+    "attendees": [],
+    "venue": "Lab Block"
+  },
+  {
+    "id": 4,
+    "title": "Career Talk",
+    "category": "Talk",
+    "date": "2026-11-08",
+    "capacity": 120,
+    "registered_count": 45,
+    "status": "Published",
+    "description": "Careers in technology",
+    "attendees": [],
+    "venue": "Auditorium"
+  },
+  {
+    "id": 5,
+    "title": "Alumni Meetup",
+    "category": "Networking",
+    "date": "2026-11-10",
+    "capacity": 60,
+    "registered_count": 25,
+    "status": "Cancelled",
+    "description": "Alumni networking",
+    "attendees": [],
+    "venue": "Seminar Room"
+  },
+  {
+    "id": 6,
+    "title": "Pitch Night",
+    "category": "Competition",
+    "date": "2026-11-12",
+    "capacity": 50,
+    "registered_count": 5,
+    "status": "Draft",
+    "description": "Student startup pitches",
+    "attendees": [],
+    "venue": "Innovation Hall"
+  }
+]
