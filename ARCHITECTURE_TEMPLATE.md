@@ -1,16 +1,7 @@
-# Architecture Notes
+# OrderOps architecture notes
 
-## Project map
-
-## Data model
-
-## Data flow
-
-## Storage design
-
-## Diagram
-
-## Three improvements suggested
-1.
-2.
-3.
+## Source file map
+## Order state transitions
+## Payment and refund state flow
+## Duplicate event strategy
+## Three edge cases I tested

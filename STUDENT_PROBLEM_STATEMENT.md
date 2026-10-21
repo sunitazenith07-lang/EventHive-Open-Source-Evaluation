@@ -1,50 +1,45 @@
-# EventHive: Campus event registration, capacity and attendee tracking
+# OrderOps: Order Failure, Cancellation & Refund Reconciliation
 
-**Zenith School of AI | Open-Source Evaluation | Python 3.10+ | JSON | GitHub**
+**Track:** Food-delivery operations | **Language:** Python 3.10+ | **Time:** 24-hour evaluation
 
-## Challenge
-EventHive is a Python application for managing campus events, registration counts, attendee records and venue capacity. Your task is to understand the existing code, fix three issue tickets announced by organisers at kick-off, strengthen search and filtering, implement one optional feature, add tests and explain your decisions. Improve the existing project; do not rebuild it from scratch.
+## Scenario
+A food-delivery platform can receive a confirmed payment before the restaurant accepts an order. A restaurant may then reject the order; a customer may cancel before dispatch; and refund notifications can arrive late or more than once. The system must never issue duplicate refunds or claim that an order has been delivered when it has not.
 
-## Start-up
-Run these commands from the repository root:
+This is a simulated, offline project inspired by common food-delivery workflows. It is not Zomato's internal problem statement or code. Do not call external payment or delivery APIs.
 
-```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest -q
-python -m main
-```
+## Required behaviour
+1. Process order events without mutating the original order object.
+2. Ignore duplicate event IDs after first successful processing.
+3. Allow only defined order-state transitions.
+4. If a paid order is cancelled before dispatch or rejected by the restaurant, record the appropriate refund due.
+5. A refund must be a positive integer amount in paise, cannot exceed the amount due, and can only apply to an order eligible for refund.
+6. Mark a refund complete only when the full refundable amount has been processed. Partial refunds must remain visibly partial.
+7. Reconcile internal and provider order/payment summaries, reporting missing records and amount/status mismatches deterministically.
+8. Handle unknown order IDs, invalid event types, empty input and missing fields without corrupting state.
 
-Inspect README.md, models.py, service.py, fixtures.py, data/ and tests/test_contract.py before editing. Create ARCHITECTURE.md explaining the data model, program flow, storage design, a diagram and three improvements grounded in the code.
+## Kick-off tasks
+Organisers will share three issue tickets at kick-off. Reproduce each issue, explain its root cause, make a focused fix, and add a regression test. Do not guess at ticket details before they are announced.
 
-## Mandatory work
-1. Reproduce and fix the three issue tickets released at kick-off. Add a regression test for each.
-2. Implement case-insensitive search that trims surrounding spaces, and combined category and status filters. Invalid filters and no-results states must be handled safely.
-3. Implement and test at least one additional feature below:
-   - Waitlist: record waitlisted attendees when full and promote the next eligible person when a confirmed registration is cancelled.
-   - Capacity dashboard: show event capacity, confirmed registrations, spaces remaining and waitlist size.
-   - Duplicate-registration warning: detect duplicate attendee emails after normalising whitespace and case.
-4. Keep PROJECT_NOTES.md and README.md current. Document at least five meaningful test scenarios in TESTING.md.
-5. Work on focused branches and pull requests. Do not remove, skip, weaken or bypass the supplied tests.
+## Required submission
+- A pull request with the fixes and tests.
+- `ORDER_FLOW_NOTES.md`: describe the order/payment/refund states, include one example event sequence, and document three edge cases.
+- A short explanation of what changed and any known limitations.
 
-## Test suite
-The public suite contains 110 visible test cases. The untouched starter is intended to begin at 86 passing and 24 failing because of deliberate defects. The final evaluation also includes 90 private checks, for 200 automated cases total; private checks are not in this public repository. A green visible suite alone does not guarantee full credit.
+## Optional stretch work (choose at most one)
+A. Create a deterministic CSV summary of orders awaiting refunds.  
+B. Detect events that appear out of order and return an actionable warning.  
+C. Add a concise operations summary grouped by order state.
 
-## GitHub workflow
-Use fix/issue-<number>-<summary> for each bug and feature/<short-name> for a feature. Pull requests should include the root cause, what changed, issue reference, tests run and known limitations. Watch the Actions tab for the visible test results.
+## Testing and workflow
+Run `python -m pytest -q`. Initial tests deliberately expose incomplete behaviour. A lower failure count means some defects are fixed; green means all visible tests pass. Every push and pull-request update triggers GitHub Actions against the exact commit. Do not edit workflow files, skip tests, or hard-code fixture output to evade checks.
 
-## Submission
-Submit your repository/fork URL, pull-request links, README.md, ARCHITECTURE.md, TESTING.md, PROJECT_NOTES.md, a summary of bugs fixed, feature notes and a two-minute demo. If AI tools are used, complete AI_USAGE.md: state the tool/model, purpose, what you verified or changed yourself, the result and any displayed credit/token count (or “not available”). Do not include secrets or private personal data. You must be able to explain and modify your code during the viva.
+## Integrity
+AI chatbots, code-completion tools, generated patches, generated tests and solution-sharing are prohibited for this evaluation. Ordinary non-AI language/framework documentation is allowed. Do not paste challenge code or data into external services. You must explain the code and make a small live change yourself; the evaluator may ask you to trace a bug and modify its behaviour.
 
-## Evaluation — 100 marks
-
-| Criterion | Marks |
-|---|---:|
-| Codebase understanding | 15 |
-| Problem solving and root-cause analysis | 25 |
-| Working prototype and requested features | 20 |
-| Code quality | 10 |
-| Testing and edge cases | 10 |
-| Demo, communication and viva | 20 |
-| **Total** | **100** |
-
-All 300 students are assessed using the same rubric. The top 270 students will be shortlisted by final score, subject to minimum competency criteria announced by organisers. Follow the event schedule and the latest official announcement for deadlines, code freeze and demo timings.
+## Rubric — 100 marks
+- Codebase understanding and state-flow explanation: 15
+- Root-cause analysis and correctness: 25
+- State transitions, idempotency and refund safety: 25
+- Regression testing and edge cases: 15
+- Code quality and maintainability: 10
+- Pull request, notes and live explanation: 10

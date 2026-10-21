@@ -1,27 +1,22 @@
-# EventHive — Student Starter
+# OrderOps — Order Failure, Cancellation & Refund Reconciliation
 
-**Zenith School of AI | Individual Open-Source Evaluation**
+Zenith School of AI | Individual Open-Source Evaluation | Python 3.10+
 
-EventHive is a Python application for managing campus events, registration counts, attendee records and venue capacity.
+This simulated service models failure and refund edge cases in a food-delivery platform. It is inspired by common food-delivery operations; it is not Zomato's internal software and does not connect to real payments or customers.
 
-## Start here
+## Start
 1. Read STUDENT_PROBLEM_STATEMENT.md.
-2. Use Python 3.10+ and Git.
-3. Run:
-```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest -q
-python -m main
-```
+2. Run `python -m pip install -r requirements-dev.txt`
+3. Run `python -m pytest -q`
+4. Run the sample: `python -m main`
 
-The starter contains 110 visible tests: 86 pass and 24 fail on the untouched starter by design. Fix the defects; do not delete, skip, weaken or bypass tests. The final evaluation includes 90 additional private checks, for 200 cases total. Private evaluation material is not included here.
+Some visible tests are expected to fail on the untouched starter. Fix the behaviour; don't delete or weaken tests. GitHub Actions runs on pushes, pull requests, and manual dispatch, and reports pass/fail counts. The check stays red until the visible tests pass.
 
-## Project map
-- models.py — domain model and field definitions.
-- service.py — JSON storage, search/filtering, status and domain operations.
-- data/records.json — sample records.
-- tests/test_contract.py — visible contract tests.
-- .github/workflows/tests.yml — automated checks on pushes and pull requests.
-- STUDENT_PROBLEM_STATEMENT.md — task, features and rubric.
+## Key files
+- `service.py` — order event and refund logic.
+- `models.py` — starter order records.
+- `fixtures.py` and `data/records.json` — synthetic records.
+- `tests/test_contract.py` — visible contract tests.
+- `.github/workflows/tests.yml` — automated pull-request checks.
 
-Start only when the organiser announces kick-off. Check Actions for the visible test report.
+Fork this repository and open a pull request against this original repository. Do not merge your PR. Be ready to explain and make a small live change. See CONTRIBUTING.md for the AI-integrity policy.

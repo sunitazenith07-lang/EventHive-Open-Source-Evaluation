@@ -1,3 +1,8 @@
-# AI-Use Declaration
+# Integrity declaration
 
-For each tool/model/resource, describe its purpose, what you accepted or changed, what you independently verified, any displayed credit/token count (or write not available), and one suggestion you accepted, modified or rejected with the reason. Never include secrets or private personal data.
+I confirm this submission is my own work. I did not use AI chatbots, AI code-completion/generation or another person to write/debug the solution. I can explain every material change and make a small live modification.
+
+Name/ID: __________
+Repository: __________
+Pull request: __________
+Confirmation: __________

@@ -1,11 +1,7 @@
-# Project Notes
+# Project notes
 
 ## Requirements completed
-
-## Files changed
-
-## Decisions and assumptions
-
-## Tests and results
-
-## Limitations and next steps
+## Files changed and why
+## Tests run
+## Assumptions
+## Known limitations
