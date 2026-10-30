@@ -5,6 +5,7 @@
 - Baseline reported: `python -m pytest -q` → **150 passed, 62 failed, 1 warning**.
 - Intermediate local run after replay guard: **171 passed, 41 failed, 1 warning**.
 - Fix branch: `python -m pytest -q` → **212 passed, 1 warning in 0.84s**, subsequently **212 passed, 1 warning in 0.94s**.
+- After adding five regression tests and pulling the latest fix branch: **217 passed, 1 warning in 1.03s**.
 - `python -m main` ran successfully.
 
 ## Five (plus) visible edge cases
@@ -31,9 +32,9 @@ status_mismatches: ['ORD-102']
 ```
 
 ## Regression tests
-The original visible test suites exercise many of these scenarios. Additional focused regression tests are introduced separately in `tests/test_regression_safety.py`; their execution result must be recorded after running pytest again.
+The original visible test suites exercise many of these scenarios. Additional focused regression tests are introduced separately in `tests/test_regression_safety.py`; they were included in the later local run with **217 passed, 1 warning in 1.03s**.
 
 ## Remaining issues
-- The latest observed fix-branch run had zero failed tests.
+- The latest observed fix-branch run had zero failed tests (**217 passed**).
 - One pytest deprecation warning originates from `anyio` using `CallSpec2`.
 - The visible suite is not a guarantee of hidden-test completeness.
