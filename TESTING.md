@@ -23,4 +23,4 @@
 - Simultaneous amount and status mismatches are reported independently.
 
 ## Remaining failures or limitations
-No test failures remain. Reconciliation resolves duplicate order IDs by keeping the last row in each input list.
+No test failures remain. Reconciliation resolves duplicate order IDs by keeping the last row in each input list. A refund event that arrives before its order is cancelled or rejected is consumed without effect, and replaying the same event ID later does not apply it; this is checked manually, not by a regression test.

@@ -1,4 +1,4 @@
-"""Starter order lifecycle and refund service; all data is synthetic."""
+"""Order lifecycle and refund service; all data is synthetic."""
 from copy import deepcopy
 
 

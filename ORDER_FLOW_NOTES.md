@@ -21,3 +21,4 @@ Order total: 1000 paise. This sequence was run through `apply_order_event`.
 - Refunds apply only to paid cancelled/rejected orders. Partial refunds remain `PAID`; payment changes to `REFUNDED` only when the full due amount has been processed.
 - Payment confirmed after cancellation or rejection sets the full order total as due.
 - Duplicate order IDs in reconciliation input are not diagnosed; the last row for that ID is used.
+- Out-of-order refunds: a `refund_processed` event that arrives before the order is cancelled or rejected is recorded as processed but has no effect, so re-sending the same `event_id` after the cancellation is also ignored. The provider must send the refund again under a new `event_id`. Checked manually: refund `r` (500 paise) before cancel `c`, then replay of `r`, leaves `refunded_paise` at 0.

@@ -22,3 +22,5 @@ When payment is confirmed for an already cancelled or rejected order, the handle
 
 ## 6. Unresolved challenge or next step
 Duplicate summary rows for one order ID still use the last row in each input list. A future change could define an explicit duplicate-record policy and report duplicates instead of silently choosing one.
+
+A second limitation: recognized events whose transition is not yet valid (for example a refund before the cancellation) are still recorded as processed, so a late replay of that same `event_id` is ignored. Holding such events until they become valid would need a pending-event store and was not attempted.
