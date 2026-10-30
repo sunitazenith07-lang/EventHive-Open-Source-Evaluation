@@ -1,4 +1,6 @@
 """Starter order lifecycle and refund service; all data is synthetic."""
+import csv
+import io
 from copy import deepcopy
 
 REFUNDABLE_STATUSES=("CANCELLED","REJECTED")
@@ -79,6 +81,21 @@ def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[int
             continue
         by_id[oid]=apply_order_event(by_id[oid],e)
     return by_id,unrouted
+
+
+AWAITING_REFUND_COLUMNS=["order_id","status","refund_due_paise","refunded_paise","outstanding_paise"]
+
+
+def awaiting_refund_csv(orders) -> str:
+    """CSV of orders that still owe the customer money, sorted by order_id."""
+    buf=io.StringIO()
+    writer=csv.writer(buf,lineterminator="\n")
+    writer.writerow(AWAITING_REFUND_COLUMNS)
+    for o in sorted(orders,key=lambda o:str(o.get("order_id"))):
+        due,paid=o.get("refund_due_paise",0),o.get("refunded_paise",0)
+        if due>paid:
+            writer.writerow([o.get("order_id"),o.get("status"),due,paid,due-paid])
+    return buf.getvalue()
 
 
 def _amount(record: dict):

@@ -159,3 +159,11 @@ KNOWN LIMITATIONS
     -Added apply_events(orders, events). It applies events in order, keyed by order_id, and returns the updated orders plus the positions of events whose order_id is missing or unknown, so they aren't silently lost.
     -The input orders are not changed, same as apply_order_event.
     -Tests: test_apply_events_routes_by_order_id_and_reports_unknown, and test_dataset_refunds_never_exceed_due, which runs the whole dataset and checks no order is refunded more than it's due. That turns my one-off manual check into a permanent test.
+5.Optional stretch: awaiting-refund CSV report
+    -The brief allows at most one stretch. I picked this one because refund safety is the core of the task, and support staff need a list of customers who are still owed money.
+    -awaiting_refund_csv(orders) returns CSV text with order_id, status, refund_due_paise, refunded_paise and outstanding_paise, for every order where refund_due_paise > refunded_paise, sorted by order_id so the output is always the same.
+    -Fully refunded and never-refundable orders are left out. Empty input gives just the header row.
+    -It returns a string instead of writing a file, so it's easy to test and the caller decides where to save it.
+    -python -m main now also applies four sample events to ORD-101 (paid, rejected, refund of 20000, the same refund replayed) and prints the report: ORD-101,REJECTED,45900,20000,25900. That shows the replay was ignored.
+    -On the full dataset (records.json events applied with apply_events) the report lists 31 orders still awaiting a refund.
+    -Tests: test_awaiting_refund_csv_lists_only_outstanding_orders_sorted, test_awaiting_refund_csv_empty_input_has_header_only.

@@ -1,7 +1,7 @@
 """Regression tests for defects fixed in service.py."""
 import pytest
 from models import new_order
-from service import apply_events, apply_order_event, reconcile_orders
+from service import apply_events, apply_order_event, awaiting_refund_csv, reconcile_orders
 
 
 def event(event_id, kind, **extra):
@@ -194,3 +194,22 @@ def test_dataset_refunds_never_exceed_due():
     result,_=apply_events(data["orders"],data["events"])
     for o in result.values():
         assert 0<=o["refunded_paise"]<=o["refund_due_paise"]
+
+
+# Stretch: awaiting-refund CSV
+
+def test_awaiting_refund_csv_lists_only_outstanding_orders_sorted():
+    partial=refundable_order(1000)
+    partial.update(order_id="B",refunded_paise=400)
+    full=refundable_order(500)
+    full.update(order_id="A",refunded_paise=500,payment_status="REFUNDED")
+    owed=refundable_order(300)
+    owed["order_id"]="C"
+    lines=awaiting_refund_csv([owed,new_order("D",100),partial,full]).splitlines()
+    assert lines==["order_id,status,refund_due_paise,refunded_paise,outstanding_paise",
+                   "B,CANCELLED,1000,400,600",
+                   "C,CANCELLED,300,0,300"]
+
+
+def test_awaiting_refund_csv_empty_input_has_header_only():
+    assert awaiting_refund_csv([])=="order_id,status,refund_due_paise,refunded_paise,outstanding_paise\n"
