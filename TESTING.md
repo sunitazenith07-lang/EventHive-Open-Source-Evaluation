@@ -4,7 +4,7 @@
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Mandatory Testing Documentation
 > **Verification Command:** `python -m pytest -q`
-> **Actual Summary:** `221 passed in 0.12s`
+> **Actual Summary:** `225 passed in 0.13s`
 
 ---
 
@@ -26,7 +26,7 @@ This file replaces the starter prompt template `TESTING.md` (24 lines of instruc
 - **Actual Terminal Output:**
   ```text
   ................................................................................................................................................................................................................... [100%]
-  221 passed in 0.12s
+  225 passed in 0.13s
   ```
 
 ---
@@ -37,8 +37,8 @@ The automated test suite is organised into two distinct test modules under `test
 
 | Test Module | Test Functions | Total Test Cases | Focus Area |
 |---|---|---|---|
-| `tests/test_contract.py` | 21 unique functions | 21 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
-| `tests/test_acceptance_matrix.py` | 14 unique functions | 200 | Parametrized combinatorial matrix testing: state transitions (26), event idempotency (20), valid refund ranges (10), invalid refund types (15), refund eligibility combinations (12), cumulative refund arithmetic (20), reconciliation status/amount variations (32), determinism (10), and rejection total scales (10). |
+| `tests/test_contract.py` | 23 unique functions | 23 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
+| `tests/test_acceptance_matrix.py` | 14 unique functions | 202 | Parametrized combinatorial matrix testing: state transitions (28), event idempotency (20), valid refund ranges (10), invalid refund types (15), refund eligibility combinations (12), cumulative refund arithmetic (20), reconciliation status/amount variations (32), determinism (10), and rejection total scales (10). |
 
 ---
 
@@ -109,7 +109,7 @@ As noted in Section 6, the automated `pytest` suite tests domain logic using iso
 
 1. **In-Memory Fixtures vs Disk Ingestion:**
    The pytest suite tests the domain logic via programmatic in-memory dictionaries (`models.new_order()`) rather than loading `data/records.json` from disk. A full integration test reading `data/records.json` directly would further protect against file parsing regressions.
-2. **Missing `dispatch_started` Rejection Matrix Row:**
-   `test_order_state_transition_matrix` tests dispatch from `PLACED`, `ACCEPTED`, `OUT_FOR_DELIVERY`, and `DELIVERED`, but does not explicitly assert dispatch from `REJECTED` or `CANCELLED`. The code correctly enforces `status == "ACCEPTED"`, but a matrix row would document this explicitly.
+2. **Terminal State Dispatch Guard Coverage (Closed):**
+   `test_order_state_transition_matrix` explicitly asserts dispatch transitions from all valid and terminal states, confirming `REJECTED -> REJECTED` and `CANCELLED -> CANCELLED` remain unchanged when `dispatch_started` is applied, backed by contract tests in `test_contract.py`.
 3. **Refund-Specific Idempotency Test:**
    `test_payment_event_replay_idempotent` covers idempotency via `payment_confirmed` across 20 IDs. An explicit test replaying `refund_processed` with the same `event_id` is covered by the generic idempotency check, but having a dedicated test asserting `refunded_paise` does not double on replay provides additional regression confidence.

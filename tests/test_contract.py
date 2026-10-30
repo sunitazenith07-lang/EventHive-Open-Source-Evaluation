@@ -229,3 +229,16 @@ def test_cancellation_then_payment_confirmed_then_refund():
     assert full["refunded_paise"] == 4500
     assert full["payment_status"] == "REFUNDED"
 
+def test_dispatch_started_on_rejected_order_is_ignored():
+    order = new_order("O-REJ", 1000, "REJECTED")
+    out = apply_order_event(order, event("e1", "dispatch_started"))
+    assert out["status"] == "REJECTED"
+    assert out["processed_event_ids"] == ["e1"]
+
+
+def test_dispatch_started_on_cancelled_order_is_ignored():
+    order = new_order("O-CNC", 1000, "CANCELLED")
+    out = apply_order_event(order, event("e1", "dispatch_started"))
+    assert out["status"] == "CANCELLED"
+    assert out["processed_event_ids"] == ["e1"]
+

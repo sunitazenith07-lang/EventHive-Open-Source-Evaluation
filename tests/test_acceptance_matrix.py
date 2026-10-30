@@ -28,6 +28,8 @@ def ev(event_id, kind, **extra):
     ("DELIVERED","cancel_requested","DELIVERED"),
     ("PLACED","dispatch_started","PLACED"),
     ("ACCEPTED","dispatch_started","OUT_FOR_DELIVERY"),
+    ("REJECTED","dispatch_started","REJECTED"),
+    ("CANCELLED","dispatch_started","CANCELLED"),
     ("OUT_FOR_DELIVERY","dispatch_started","OUT_FOR_DELIVERY"),
     ("DELIVERED","dispatch_started","DELIVERED"),
     ("PLACED","order_delivered","PLACED"),

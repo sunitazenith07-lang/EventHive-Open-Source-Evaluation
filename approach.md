@@ -146,7 +146,7 @@ The untouched starter demo printed erroneous classifications, failing to identif
 ```bash
 python -m pytest -q
 ```
-- **Final Result:** `221 passed in 0.12s` (100% pass rate across `test_acceptance_matrix.py` and `test_contract.py`).
+- **Final Result:** `225 passed in 0.13s` (100% pass rate across `test_acceptance_matrix.py` and `test_contract.py`).
 
 ### Offline Reconciliation Demo (`python -m main`)
 Output verified:
@@ -171,7 +171,7 @@ Output verified:
 - Multi-threaded distributed lock management (evaluation requires pure in-memory Python 3.10+ service).
 
 ### Verified Results
-- 221 automated unit and matrix tests passing.
+- 225 automated unit and matrix tests passing.
 - 0 uncaught exceptions across all 219 synthetic events in `data/records.json` (verified via standalone offline replay script; automated pytest suite executes programmatic in-memory tests).
 
 ### Remaining Limitations
