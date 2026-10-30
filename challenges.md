@@ -1,23 +1,28 @@
-# challenges.md - COMPULSORY submission
+# Challenges — OrderOps
 
-This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
+## 1. Distinguishing replay bugs from refund bugs
+The first reported test run showed 62 failures. An initial local attempt addressed event replay by checking whether an event ID was already in `processed_event_ids`. The next reported run still had 41 failures: the duplicate-event change alone could not correct refund validation or reconciliation.
 
-## 1. Challenge or confusing behaviour
-What specific state transition, test failure, data condition, or code path was difficult to understand?
+**Evidence:** Failures included `test_invalid_refund_amounts_are_ignored`, `test_refund_eligibility_matrix`, `test_refunds_cannot_exceed_due`, and `test_reconciliation_status_mismatch_matrix`.
 
-## 2. Evidence
-Summarize the relevant assertion, error message, output, or minimal reproducible example. Do not include secrets or real customer data.
+**Resolution:** The fix handles idempotency, validates refund amount and eligibility, and compares reconciliation statuses as well as amounts.
 
-## 3. What I tried
-List the debugging steps or experiments you actually performed and what each one showed.
+## 2. Refund type pitfalls
+The starter code performed `out["refunded_paise"] += event.get("amount_paise", 0)` without checking the type. This caused `TypeError` for `None`, strings, lists, and dictionaries. A boolean is also a subclass of `int` in Python and could be incorrectly treated as a refund amount.
 
-## 4. Resolution
-What was the root cause? What did you change, and why did that address the cause rather than hide the symptom?
+**Resolution:** Only strictly typed integers greater than zero and within the remaining due are accepted. Ineligible events leave refund counters unchanged.
 
-## 5. Proof and regression prevention
-Which test(s) demonstrate the fix? What related case could still break?
+## 3. Confusing stale test output with the current branch
+A run on local `main` still showed the older implementation and failures. `git status` identified a modified local `service.py`, and `git branch --show-current` showed `main`.
 
-## 6. Unresolved challenge or next step
-State any remaining limitation and how you would investigate it next.
+**Resolution:** The earlier local edit was saved with `git stash`, the remote fix branch was fetched and checked out, and pytest was rerun. The later result was 212 passes.
 
-If you did not encounter a major blocker, say that clearly and describe the hardest edge case you deliberately tested and what it taught you. Do not manufacture a story; describe observable engineering work.
+## 4. Shell output pasted into PowerShell
+The terminal returned a `ParserError` when previously printed pytest output (including `from _pytest.python import CallSpec2` and the `PS ...` prompt) was pasted as if it were a command. This was not an OrderOps application bug.
+
+**Resolution:** Use only executable commands at the prompt, not explanatory output or an existing terminal prompt.
+
+## 5. Remaining considerations
+- The installed `anyio` plugin emits a deprecation warning regarding pytest 10. It did not cause a visible failure in the observed runs.
+- Hidden tests, malformed order records, and out-of-order payment events could warrant further investigation.
+- The code and notes were prepared with AI assistance; evaluation-policy compliance must be checked honestly before submission.
