@@ -16,6 +16,9 @@ def apply_order_event(order: dict, event: dict) -> dict:
     event_id=event.get("event_id")
     kind=event.get("type")
 
+    if event_id in out["processed_event_ids"]:
+        return out 
+
     # Deliberate starter defects: duplicate and invalid refund events are not
     # fully protected, and some transitions need tighter validation.
     if kind=="payment_confirmed":
