@@ -149,3 +149,19 @@ def test_rows_without_order_id_are_reported_not_merged():
     assert report["missing_from_provider"]==[]
     assert report["invalid_internal_rows"]==[0,1,3]
     assert report["invalid_provider_rows"]==[1]
+
+
+# QoL 3: duplicate order IDs
+
+def test_duplicate_order_id_is_reported_not_matched():
+    internal=[{"order_id":"A","amount_paise":1,"status":"PLACED"},
+              {"order_id":"A","amount_paise":2,"status":"PLACED"},
+              {"order_id":"B","amount_paise":3,"status":"PLACED"}]
+    provider=[{"order_id":"A","amount_paise":2,"status":"PLACED"},
+              {"order_id":"B","amount_paise":3,"status":"PLACED"},
+              {"order_id":"C","amount_paise":4,"status":"PLACED"},
+              {"order_id":"C","amount_paise":4,"status":"PLACED"}]
+    report=reconcile_orders(internal,provider)
+    assert report["duplicate_order_ids"]==["A","C"]
+    assert report["matched"]==["B"]
+    assert report["missing_from_internal"]==[]

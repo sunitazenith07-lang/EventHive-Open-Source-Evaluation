@@ -149,3 +149,8 @@ KNOWN LIMITATIONS
     -A None row in the list crashed the function.
     -Now rows that aren't dicts or have no/empty order_id are skipped and their positions are listed in invalid_internal_rows / invalid_provider_rows, so someone can find and fix them.
     -Test: test_rows_without_order_id_are_reported_not_merged.
+3.Duplicate order IDs in reconciliation
+    -If one side had the same order_id twice (for example amounts 1 and 2), the dict kept only the last row. If that last row agreed with the other side, the order was reported as matched, which hid a real problem.
+    -Now any ID that appears more than once on either side is listed in duplicate_order_ids and is not put in matched or any mismatch list, because there's no way to know which copy is right.
+    -This replaces the "only the last one is kept" limitation from Section 5.
+    -Test: test_duplicate_order_id_is_reported_not_matched.

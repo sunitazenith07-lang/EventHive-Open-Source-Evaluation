@@ -69,25 +69,31 @@ def _amount(record: dict):
     return record["amount_paise"] if "amount_paise" in record else record.get("total_paise")
 
 
-def _index_rows(rows: list) -> tuple[dict, list[int]]:
-    """Key rows by order_id; return the positions of rows that have no usable ID."""
-    keyed,invalid={},[]
+def _index_rows(rows: list) -> tuple[dict, list[int], set]:
+    """Key rows by order_id; return the positions of rows that have no usable ID
+    and the IDs that appear more than once."""
+    keyed,invalid,dupes={},[],set()
     for i,r in enumerate(rows):
-        if isinstance(r,dict) and r.get("order_id"):
-            keyed[r["order_id"]]=r
-        else:
+        if not (isinstance(r,dict) and r.get("order_id")):
             invalid.append(i)
-    return keyed,invalid
+        elif r["order_id"] in keyed:
+            dupes.add(r["order_id"])
+        else:
+            keyed[r["order_id"]]=r
+    return keyed,invalid,dupes
 
 
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     """Compare transaction summaries keyed by order_id."""
-    left,bad_left=_index_rows(internal)
-    right,bad_right=_index_rows(provider)
+    left,bad_left,dup_left=_index_rows(internal)
+    right,bad_right,dup_right=_index_rows(provider)
+    # Which copy of a duplicated ID is correct is unknown, so it is not compared.
+    dupes=dup_left|dup_right
     report={"matched":[],"missing_from_provider":[],"missing_from_internal":[],
             "amount_mismatches":[],"status_mismatches":[],
+            "duplicate_order_ids":sorted(dupes,key=str),
             "invalid_internal_rows":bad_left,"invalid_provider_rows":bad_right}
-    for key in sorted(set(left)|set(right),key=lambda x:str(x)):
+    for key in sorted((set(left)|set(right))-dupes,key=lambda x:str(x)):
         if key not in right:
             report["missing_from_provider"].append(key)
         elif key not in left:
