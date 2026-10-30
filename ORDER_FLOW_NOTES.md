@@ -41,4 +41,5 @@ PLACED / ACCEPTED --cancel_requested--> CANCELLED
 - **Refund due vs refunded** are separate fields. Over-refunds are rejected whole, not capped, because silently capping would hide a provider/internal disagreement.
 - **Event ids** must be non-empty strings and are tracked per order (`processed_event_ids`). The same id reused on a different order is treated as a different event.
 - **Rejected events are not recorded.** This means an out-of-order event can be applied on redelivery. The trade-off is that re-running a whole stream can change an order once (ORD-1007 above). After that it reaches a fixed point, which is tested.
-- Not handled: refunds for delivered orders (no event type for it), partial cancellations, and out-of-order detection beyond rejecting the transition.
+- **Out-of-order flagging (stretch):** `process_events` marks each rejection `out_of_order: True` when the event arrived before the order reached the step it needs. Examples: dispatch before acceptance, delivery before dispatch, a refund before the cancel/reject or before the payment. Flagged events are reported but not reordered or retried.
+- Not handled: refunds for delivered orders (no event type for it), partial cancellations, and automatic retry of early events.

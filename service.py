@@ -124,12 +124,43 @@ def apply_order_event(order: dict, event: dict) -> dict:
     return evaluate_order_event(order, event)[0]
 
 
+# Stretch item: out-of-order detection. These are the statuses from which an
+# event is *early*: the order has not reached the step the event needs yet,
+# but still can. A rejection from any other status is late or simply invalid
+# (e.g. cancel after dispatch can never become valid).
+EARLY_FROM = {
+    "dispatch_started": ("PLACED",),
+    "order_delivered": ("PLACED", "ACCEPTED"),
+}
+
+
+def is_out_of_order(order: dict, event: dict, outcome: str) -> bool:
+    """True when ``event`` was rejected only because it arrived too early.
+
+    Evaluated against the order state at the moment of rejection.
+    """
+    if not isinstance(event, dict):
+        return False
+    kind = event.get("type")
+    status = order.get("status")
+    if outcome == "invalid_transition":
+        return status in EARLY_FROM.get(kind, ())
+    if outcome == "refund_not_eligible" and kind == "refund_processed":
+        # Refund before the cancel/reject, or before the payment it returns.
+        if status in ("PLACED", "ACCEPTED"):
+            return True
+        return status in REFUNDABLE_STATUSES and order.get("payment_status") == "UNPAID"
+    return False
+
+
 def process_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[dict]]:
     """Apply a stream of events to a set of orders, in input order.
 
     Returns ``(orders_by_id, rejected)`` where ``rejected`` lists every event
-    that did not change state, with its position in the input and a reason.
-    Events for unknown order ids are rejected rather than creating orders.
+    that did not change state, with its position in the input, a reason, and
+    ``out_of_order`` (True when the event arrived before the order reached
+    the step it needs; see ``is_out_of_order``). Events for unknown order ids
+    are rejected rather than creating orders.
     """
     state = {}
     for order in orders or []:
@@ -139,18 +170,26 @@ def process_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[d
     rejected = []
     for index, event in enumerate(events or []):
         order_id = event.get("order_id") if isinstance(event, dict) else None
+        early = False
         if order_id is None:
             reason = "missing_order_id" if isinstance(event, dict) else "malformed_event"
         elif order_id not in state:
             reason = "unknown_order_id"
         else:
-            state[order_id], reason = evaluate_order_event(state[order_id], event)
+            before = state[order_id]
+            state[order_id], reason = evaluate_order_event(before, event)
             if reason == APPLIED:
                 continue
+            early = is_out_of_order(before, event, reason)
         event_id = event.get("event_id") if isinstance(event, dict) else None
-        rejected.append({"index": index, "event_id": event_id,
-                         "order_id": order_id, "reason": reason})
+        rejected.append({"index": index, "event_id": event_id, "order_id": order_id,
+                         "reason": reason, "out_of_order": early})
     return state, rejected
+
+
+def out_of_order_events(orders: list[dict], events: list[dict]) -> list[dict]:
+    """Only the rejected events that arrived too early, in input order."""
+    return [r for r in process_events(orders, events)[1] if r["out_of_order"]]
 
 
 def _index_records(rows, side: str, invalid: list) -> dict:

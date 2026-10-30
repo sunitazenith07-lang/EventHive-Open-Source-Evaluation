@@ -43,6 +43,6 @@ ORD-EV-0157 restaurant_rejected   -> applied              REJECTED PAID  due 100
 Still at risk: if someone later starts recording rejected ids, the early-refund test will fail, by design. That forces the trade-off to be revisited deliberately.
 
 ## 6. Unresolved challenge or next step
-- An early event currently has no queue. It is only applied if the provider redelivers it.
-- A real service would park out-of-order events per order and retry them after each successful transition. This is close to the "flag out-of-order events" stretch item, which was not attempted.
-- To validate it: re-run the ORD-1007 trace and expect the refund to apply on the first pass.
+- The "flag out-of-order events" stretch item now *detects* this case: ORD-1007's refund is reported with `out_of_order: True` (`test_dataset_flags_ord_1007_early_refund`).
+- It does not *fix* it. An early event is still only applied if the provider redelivers it.
+- Next step: park flagged events per order and retry them after each successful transition. To validate, re-run the ORD-1007 trace and expect the refund to apply on the first pass.

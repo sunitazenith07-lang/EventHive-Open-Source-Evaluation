@@ -36,6 +36,6 @@ The data is small: 150 orders, 219 events, 163 provider rows. A per-event `deepc
 - Adding `payment_status_mismatches` and `invalid_records` to the report makes it slightly larger. In return, malformed rows and refund-state disagreements are no longer silently dropped. Existing tests that check `matched`, the mismatch lists and the empty report still pass unchanged.
 
 ## 5. Further improvements
-- **Out-of-order queue:** park events that are rejected only because they are early (e.g. a refund before the rejection), and retry them after the next successful transition. Validate with the ORD-1007 trace expecting the refund on the first pass.
+- **Out-of-order queue:** the stretch item already flags early events (`out_of_order: True`). The next step is to park them (e.g. a refund before the rejection), and retry them after the next successful transition. Validate with the ORD-1007 trace expecting the refund on the first pass.
 - **Global event-id registry** in `process_events`, to detect one id reused across orders.
 - **Copy each order once per batch** in `process_events` if event volumes grow. Validate with a benchmark on a synthetic 100k-event stream and the existing mutation tests.

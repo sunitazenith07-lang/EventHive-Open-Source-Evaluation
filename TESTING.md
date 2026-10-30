@@ -5,7 +5,8 @@
 - Commands run: `python -m pip install -r requirements-dev.txt`, `python -m pytest -q`, `python -m main`
 - Baseline on the untouched starter: **62 failed, 150 passed** (212 tests)
 - After the fix, original tests only: **212 passed**
-- After the fix, with new regression tests: **241 passed in 0.15s** (212 original + 29 in `tests/test_regressions.py`)
+- After the fix, with new regression tests: **241 passed** (212 original + 29 in `tests/test_regressions.py`)
+- After the stretch item (out-of-order flagging): **258 passed in 0.15s** (212 original + 46 new)
 - No existing test was deleted, skipped or edited.
 
 ## Edge-case evidence
@@ -25,6 +26,7 @@
 | 11 | Reconciliation input with a row missing `order_id`, a `None` row, and a duplicated provider id | No crash; listed in `invalid_records` | 3 entries in input order; valid row still matched | `test_malformed_and_duplicate_records_are_reported_not_crashed_on` |
 | 12 | Empty inputs to `reconcile_orders` and `process_events` | Empty report / empty state | All lists empty; `({}, [])` | `test_empty_reconciliation`, `test_process_events_handles_empty_input` |
 | 13 | All 219 events in `data/records.json` | No crash; refunds never exceed due; replaying applied events changes nothing | 33 applied, 186 rejected with reasons; replay → only `duplicate_event`; 3rd pass == 2nd pass | `test_dataset_replay_of_applied_events_is_idempotent_and_refunds_stay_in_bounds` |
+| 14 | Stretch: `dispatch_started` on a PLACED order; refund before the cancel; vs. cancel after dispatch | Early events flagged `out_of_order: True`; late/impossible ones `False` | Early ones flagged; cancel-after-dispatch, invalid amounts, duplicates and unknown types are not. `records.json`: 21 early events, including ORD-1007's refund | `test_lifecycle_event_before_its_step_is_flagged_early`, `test_late_or_impossible_transition_is_not_flagged`, `test_refund_before_cancellation_is_flagged_early`, `test_dataset_flags_ord_1007_early_refund` |
 
 ## Regression tests added
 All in `tests/test_regressions.py`:
@@ -34,6 +36,7 @@ All in `tests/test_regressions.py`:
 - **Transitions / malformed input** → cancel after dispatch with reason, non-dict event, unhashable type, event for a different order, unpaid rejection, late payment after cancel, second payment with a new id.
 - **Reconciliation** → `total_paise` vs `amount_paise`, amount + status together, `payment_status` mismatch, malformed/duplicate records, input-order independence, dataset consistency.
 - **Batch processing** → empty input, unknown/missing order id and duplicates, inputs not mutated.
+- **Stretch: out-of-order flagging** (17 tests) → early lifecycle events, late/impossible transitions, refund before cancel, refund before late payment, invalid events not mis-flagged, dataset run.
 
 The new tests import `evaluate_order_event` and `process_events`, which do not exist in the starter. Run against the starter, the file errors at collection. That is expected; the defects themselves are shown by the starter-behaviour column above, reproduced by running the original `service.py`.
 

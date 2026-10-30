@@ -237,3 +237,81 @@ def test_dataset_reconciliation_is_internally_consistent():
     assert set(report["matched"]).isdisjoint(
         report["amount_mismatches"] + report["status_mismatches"]
         + report["payment_status_mismatches"])
+
+
+# --- stretch: out-of-order event flagging -----------------------------------
+from service import is_out_of_order, out_of_order_events  # noqa: E402
+
+
+def flags(orders, events):
+    return [(r["event_id"], r["reason"], r["out_of_order"])
+            for r in process_events(orders, events)[1]]
+
+
+@pytest.mark.parametrize("status,kind", [
+    ("PLACED", "dispatch_started"),
+    ("PLACED", "order_delivered"),
+    ("ACCEPTED", "order_delivered"),
+])
+def test_lifecycle_event_before_its_step_is_flagged_early(status, kind):
+    order = new_order("O1", 1000, status)
+    assert flags([order], [ev("e1", kind, order_id="O1")]) == [("e1", "invalid_transition", True)]
+
+
+@pytest.mark.parametrize("status,kind", [
+    ("OUT_FOR_DELIVERY", "cancel_requested"),   # late: can never become valid
+    ("DELIVERED", "dispatch_started"),
+    ("CANCELLED", "restaurant_accepted"),
+    ("REJECTED", "order_delivered"),
+    ("ACCEPTED", "restaurant_accepted"),
+])
+def test_late_or_impossible_transition_is_not_flagged(status, kind):
+    order = new_order("O1", 1000, status)
+    assert flags([order], [ev("e1", kind, order_id="O1")]) == [("e1", "invalid_transition", False)]
+
+
+def test_refund_before_cancellation_is_flagged_early():
+    order = new_order("O1", 1000)
+    order["payment_status"] = "PAID"
+    events = [ev("r1", "refund_processed", order_id="O1", amount_paise=1000),
+              ev("c1", "cancel_requested", order_id="O1")]
+    assert flags([order], events) == [("r1", "refund_not_eligible", True)]
+
+
+def test_refund_before_late_payment_is_flagged_early():
+    order = new_order("O1", 1000, "CANCELLED")  # cancelled while still UNPAID
+    events = [ev("r1", "refund_processed", order_id="O1", amount_paise=1000)]
+    assert flags([order], events) == [("r1", "refund_not_eligible", True)]
+
+
+@pytest.mark.parametrize("event", [
+    ev("r1", "refund_processed", order_id="O1", amount_paise=-5),     # invalid amount
+    ev("r1", "refund_processed", order_id="O1", amount_paise=2000),   # over the due
+    ev("x1", "unexpected_event", order_id="O1"),                      # unknown type
+    {"type": "refund_processed", "order_id": "O1", "amount_paise": 1},  # no event id
+])
+def test_invalid_events_are_not_mistaken_for_out_of_order(event):
+    rejected = process_events([paid_cancelled()], [event])[1]
+    assert len(rejected) == 1 and rejected[0]["out_of_order"] is False
+
+
+def test_fully_refunded_order_extra_refund_is_not_flagged():
+    order = apply_order_event(paid_cancelled(), ev("r1", "refund_processed", amount_paise=1000))
+    _, outcome = evaluate_order_event(order, ev("r2", "refund_processed", amount_paise=1))
+    assert is_out_of_order(order, ev("r2", "refund_processed", amount_paise=1), outcome) is False
+
+
+def test_duplicates_and_unknown_orders_are_not_flagged():
+    events = [ev("p1", "payment_confirmed", order_id="O1"),
+              ev("p1", "payment_confirmed", order_id="O1"),
+              ev("d1", "dispatch_started", order_id="NOPE")]
+    assert [r["out_of_order"] for r in process_events([new_order("O1", 1000)], events)[1]] \
+        == [False, False]
+
+
+def test_dataset_flags_ord_1007_early_refund():
+    data = json.loads(DATA.read_text())
+    early = out_of_order_events(data["orders"], data["events"])
+    assert all(r["reason"] in ("invalid_transition", "refund_not_eligible") for r in early)
+    assert ("ORD-EV-0007", "ORD-1007") in {(r["event_id"], r["order_id"]) for r in early}
+    assert [r["index"] for r in early] == sorted(r["index"] for r in early)

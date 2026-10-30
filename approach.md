@@ -34,9 +34,17 @@
   - a late payment on a cancelled/rejected order creates a full refund due;
   - malformed or duplicated reconciliation rows go to a new `invalid_records` list instead of silently overwriting each other.
 
+## 4b. Stretch item: flag out-of-order events
+Chosen because it follows directly from the ORD-1007 case (see challenges.md).
+- `is_out_of_order(order, event, outcome)` decides whether a rejection happened only because the event arrived *early*. The order has not reached the step the event needs, but still can.
+- Early means: `dispatch_started` on PLACED; `order_delivered` on PLACED/ACCEPTED; a refund on PLACED/ACCEPTED (before the cancel/reject); or a refund on an UNPAID cancelled/rejected order (before the late payment).
+- *Late* or impossible events are not flagged, because they can never become valid. Examples: cancel after dispatch, anything on DELIVERED.
+- Invalid amounts, unknown types and missing ids are errors, not timing problems, so they are not flagged either.
+- `process_events` adds an `out_of_order` flag to every rejection, and `out_of_order_events()` returns only the flagged ones. Events are flagged, not reordered or retried.
+
 ## 5. Verification
-- **Tests added:** 29 in `tests/test_regressions.py`. No existing test changed.
-- **Results:** 212/212 original tests pass, and **241 passed** with the new file. `python -m main` now shows ORD-101 matched and ORD-102 as a status mismatch (ACCEPTED vs CANCELLED). The `records.json` run: 219 events, 33 applied, 186 rejected with reasons.
+- **Tests added:** 46 in `tests/test_regressions.py` (29 for the fixes, 17 for the stretch item). No existing test changed.
+- **Results:** 212/212 original tests pass, and **241 passed** with the fix tests, **258 passed** after the stretch item. `python -m main` now shows ORD-101 matched and ORD-102 as a status mismatch (ACCEPTED vs CANCELLED). The `records.json` run: 219 events, 33 applied, 186 rejected with reasons; 21 of the rejections are flagged out-of-order.
 - **Edge cases verified:** see TESTING.md (13 rows) and ORDER_FLOW_NOTES.md.
 - **Known limitations:**
   - event ids are per order, not global;

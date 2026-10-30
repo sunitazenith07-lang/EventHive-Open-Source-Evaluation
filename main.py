@@ -19,6 +19,10 @@ if __name__=="__main__":
               f"{len(data['events']) - len(rejected)} applied, {len(rejected)} rejected")
         for reason, count in sorted(Counter(r["reason"] for r in rejected).items()):
             print(f"  {reason}: {count}")
+        early = [r for r in rejected if r["out_of_order"]]
+        print(f"out-of-order (arrived too early): {len(early)}")
+        for r in early:
+            print(f"  #{r['index']} {r['event_id']} {r['order_id']} ({r['reason']})")
         report = reconcile_orders(data["orders"], data["provider_records"])
         print("records.json reconciliation: "
               + ", ".join(f"{k}={len(v)}" for k, v in report.items()))
