@@ -295,3 +295,31 @@ def test_same_order_replay_is_not_reported_as_cross_order():
     result,skipped=apply_events([refundable_order(500,"X")],[refund,refund])
     assert result["X"]["refunded_paise"]==200
     assert skipped["cross_order_duplicates"]==[]
+
+
+# Follow-up 4: apply_events crashed on an order without an order_id, silently
+# used the last of two orders sharing an ID, and returned untouched orders as
+# the caller's own objects.
+
+def test_apply_events_reports_orders_without_usable_id():
+    orders=[{"total_paise":5},None,new_order("A",1000),{"order_id":["B"]}]
+    result,skipped=apply_events(orders,[{"event_id":"e1","order_id":"A","type":"payment_confirmed"}])
+    assert list(result)==["A"]
+    assert result["A"]["payment_status"]=="PAID"
+    assert skipped["invalid_orders"]==[0,1,3]
+
+
+def test_apply_events_does_not_guess_between_duplicate_orders():
+    orders=[new_order("A",1),new_order("A",2),new_order("B",3)]
+    result,skipped=apply_events(orders,[{"event_id":"e1","order_id":"A","type":"payment_confirmed"}])
+    assert list(result)==["B"]
+    assert skipped["duplicate_order_ids"]==["A"]
+    assert skipped["unrouted_events"]==[0]
+
+
+def test_apply_events_returns_copies_not_the_callers_orders():
+    orders=[new_order("A",1000)]
+    result,_=apply_events(orders,[])
+    assert result["A"] is not orders[0]
+    result["A"]["status"]="DELIVERED"
+    assert orders[0]["status"]=="PLACED"

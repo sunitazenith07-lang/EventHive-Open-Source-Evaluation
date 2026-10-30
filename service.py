@@ -77,16 +77,21 @@ def apply_order_event(order: dict, event: dict) -> dict:
 def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
     """Apply events in order, routing each by its order_id.
 
-    Returns the updated orders keyed by order_id, and the positions of skipped
-    events: unrouted_events (order_id missing or unknown) and
+    Returns copies of the updated orders keyed by order_id, and a report of what
+    was skipped: invalid_orders (positions of orders with no usable order_id),
+    duplicate_order_ids (listed more than once, so none of them is processed),
+    unrouted_events (order_id missing, unknown or duplicated) and
     cross_order_duplicates (event_id already processed by a different order).
     """
-    by_id={o["order_id"]:o for o in orders}
+    keyed,invalid,dupes=_index_rows(orders)
+    # Copies, so changing the result never changes the caller's orders.
+    by_id={oid:deepcopy(o) for oid,o in keyed.items() if oid not in dupes}
     # processed_event_ids is per order, but an event_id names one event overall,
     # so the same ID arriving for a different order is not applied again.
     used_by={eid:oid for oid,o in by_id.items()
              for eid in o.get("processed_event_ids",[]) if _valid_id(eid)}
-    skipped={"unrouted_events":[],"cross_order_duplicates":[]}
+    skipped={"invalid_orders":invalid,"duplicate_order_ids":sorted(dupes,key=str),
+             "unrouted_events":[],"cross_order_duplicates":[]}
     for i,e in enumerate(events):
         oid=e.get("order_id") if isinstance(e,dict) else None
         if not (_valid_id(oid) and oid in by_id):
