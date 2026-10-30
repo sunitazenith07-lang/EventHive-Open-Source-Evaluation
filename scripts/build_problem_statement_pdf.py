@@ -17,7 +17,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, HRFlowable, KeepTogether,
+    SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -157,11 +157,16 @@ def main() -> None:
         canvas.drawString(18*mm, 8.5*mm, "Zenith School of AI • Synthetic challenge data only")
         canvas.drawRightString(A4[0] - 18*mm, 8.5*mm, f"Page {doc.page}")
         canvas.restoreState()
+    title = "Problem Statement"
+    for line in raw:
+        if line.strip().startswith("# "):
+            title = line.strip().lstrip("# ").strip()
+            break    
 
     doc = SimpleDocTemplate(
         str(OUTPUT), pagesize=A4, rightMargin=18*mm, leftMargin=18*mm,
         topMargin=16*mm, bottomMargin=20*mm,
-        title=raw[0].lstrip("# ").strip() if raw else "Problem Statement",
+        title=title,
         author="Zenith School of AI",
     )
     doc.build(story, onFirstPage=footer, onLaterPages=footer)

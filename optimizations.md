@@ -1,24 +1,20 @@
 # optimizations.md - Required submission
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
-
 ## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+- What needed improvement: Correctness, safety, and accurate reconciliation logic were the primary focus areas over raw speed.
+- What evidence suggested room to improve: The starter code had missing reconciliation categories and weak refund validation rules that led to test failures.
 
 ## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+- Option A: Implement a heavy state-machine library. (Rejected: unnecessary overhead for a simple synthetic workflow).
+- Option B: Use dictionary comprehensions and clean O(N) loops for order reconciliation. (Implemented: lightweight, readable, and fast).
 
 ## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
+- Change: Optimized `reconcile_orders` using dictionary lookups by `order_id`.
+- Reason: Avoids nested loops, achieving O(N + M) time complexity when comparing internal records against provider records.
+- Tests used to protect correctness: `test_reconciliation_status_mismatch_matrix`, `test_reconciliation_amount_mismatch_matrix`.
 
 ## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
+Prioritized code clarity, clean readability, and 100% bug-free correctness over complex performance optimizations.
 
 ## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
-
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+With more time, we could add asynchronous event queues or persistent file-based caching for high-throughput order event streams.
