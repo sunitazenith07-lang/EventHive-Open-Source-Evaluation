@@ -1,4 +1,4 @@
-﻿# TESTING.md — Required submission
+# TESTING.md — Required submission
 
 ## Test command and environment
 - Python version: 3.14.7
@@ -36,4 +36,3 @@
 - No test failures remain.
 - Duplicate order IDs collapse to the first occurrence.
 - Events without event_id are not deduplicated.
-- Documentation files other than TESTING.md were completed in Phase 2.

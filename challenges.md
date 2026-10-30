@@ -1,4 +1,4 @@
-﻿# challenges.md - COMPULSORY submission
+# challenges.md - COMPULSORY submission
 
 ## 1. Challenge or confusing behaviour
 The starter refund_processed path applied every refund amount without checking eligibility, amount type, sign, or outstanding due. Replay handling was also missing, so the same refund event could be applied more than once.

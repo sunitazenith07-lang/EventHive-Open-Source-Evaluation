@@ -1,4 +1,4 @@
-﻿# ORDER_FLOW_NOTES.md — Required submission
+# ORDER_FLOW_NOTES.md — Required submission
 
 ## 1. Example order-event sequence
 | Step | Event | Expected order/payment/refund state | Actual result |

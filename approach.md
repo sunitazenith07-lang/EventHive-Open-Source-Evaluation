@@ -1,4 +1,4 @@
-﻿# approach.md - Required submission
+# approach.md - Required submission
 
 ## 1. Baseline
 - Commands run before editing:
@@ -27,4 +27,4 @@
 - Tests added or changed: added `tests/test_regressions.py` with 14 regression tests; no existing tests changed.
 - Commands run and actual results: `python -m pytest -q` -> 226 passed, 0 failed; `python -m main` -> matched `ORD-101`, missing provider `ORD-103`, missing internal `ORD-104`, no amount mismatches, status mismatch `ORD-102`.
 - Edge cases verified: duplicate refund replay, invalid refund types, over-limit refunds, cancellation after dispatch, payment after rejection, combined reconciliation mismatches, empty/malformed reconciliation input.
-- Remaining failures or known limitations: documentation still to be completed; duplicate order IDs are not explicitly reported; anonymous events are not deduplicated.
+- Remaining known limitations: duplicate order IDs are not explicitly reported; events without event_id are not deduplicated.

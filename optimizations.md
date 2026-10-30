@@ -1,4 +1,4 @@
-﻿# optimizations.md - Required submission
+# optimizations.md - Required submission
 
 ## 1. Baseline and objective
 Correctness needed improvement: duplicate refunds, invalid refund application, missed status mismatches, and false amount mismatches. Evidence came from 62 failing tests and the demo output.
