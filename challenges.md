@@ -3,21 +3,22 @@
 This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
 
 ## 1. Challenge or confusing behaviour
-What specific state transition, test failure, data condition, or code path was difficult to understand?
+The main challenge was understanding incorrect reconciliation results and refund processing.
 
 ## 2. Evidence
-Summarize the relevant assertion, error message, output, or minimal reproducible example. Do not include secrets or real customer data.
+Initially, ORD-102 was not reported as a status mismatch.
 
 ## 3. What I tried
-List the debugging steps or experiments you actually performed and what each one showed.
+- Inspected service.py.
+- Ran the existing tests. 
+- Checked reconciliation output.
+- Added regression tests for edge cases.
 
 ## 4. Resolution
-What was the root cause? What did you change, and why did that address the cause rather than hide the symptom?
+Added separate amount and status comparisons and imporved refund validations.
 
 ## 5. Proof and regression prevention
-Which test(s) demonstrate the fix? What related case could still break?
+The complete test passed with 218 tests.
 
 ## 6. Unresolved challenge or next step
-State any remaining limitation and how you would investigate it next.
-
-If you did not encounter a major blocker, say that clearly and describe the hardest edge case you deliberately tested and what it taught you. Do not manufacture a story; describe observable engineering work.
+Duplicate order IDs and malformed reconciliation records don not have separate error reporting.

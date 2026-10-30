@@ -3,22 +3,23 @@
 Complete this file with test evidence from your own work. Include at least five edge cases. Do not claim a test passed unless you ran it.
 
 ## Test command and environment
-- Python version:
-- Command run:
-- Actual test summary:
+- Python version: 3.14
+- Command run: 'python -m pytest -q'
+- Actual test summary: 218 passed.
 
 ## Edge-case evidence
 
-| # | Case / input | Expected behaviour | Actual result | Test name or evidence |
+| # | Case / input | Expected behaviour | Actual result |
 |---|---|---|---|---|
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
-| 4 | | | | |
-| 5 | | | | |
+| 1 | Missing event ID | Ignore event | Passed |
+| 2 | Unknown event type | Ignore event | Passed |
+| 3 | Duplicate event ID | Ignore duplicate | Passed |
+| 4 | Negative Refund | Reject refund | Passed |
+| 5 | Excess cumulative refund | Reject excess | Passed |
+| 6 | FUll refund | Mark REFUNDED | Passed |
 
 ## Regression tests added
-List the defects fixed and the tests added to prevent them from returning.
+Added 6 test cases in  'tests.test_contract_py'.
 
 ## Remaining failures or limitations
-List any known failing tests or unresolved behaviours honestly.
+Duplicate or IDs and malformed reconciliation records need additoinal handling.
