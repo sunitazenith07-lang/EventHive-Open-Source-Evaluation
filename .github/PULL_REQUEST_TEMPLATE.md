@@ -5,15 +5,15 @@ Summarise the behaviour you corrected or feature implemented.
 Explain the observed problem and why it occurred.
 
 ## Tests
-- [ ] I ran `python -m pytest -q`.
-- [ ] I added or updated regression tests for my change.
-- [ ] I did not delete, skip, weaken or bypass existing tests.
+- [x] I ran `python -m pytest -q`.
+- [x] I added or updated regression tests for my change.
+- [x] I did not delete, skip, weaken or bypass existing tests.
 Paste the actual test summary and describe any remaining failures.
 
 ## Required problem-solving documents (all three mandatory; 15 marks total)
-- [ ] `approach.md` completed (5 marks).
-- [ ] `challenges.md` completed (COMPULSORY; 5 marks).
-- [ ] `optimizations.md` completed (5 marks).
+- [x] `approach.md` completed (5 marks).
+- [x] `challenges.md` completed (COMPULSORY; 5 marks).
+- [x] `optimizations.md` completed (5 marks).
 Briefly mention the most important evidence or insight from each file. Empty/generic/copied files are incomplete.
 
 ## Edge cases checked
