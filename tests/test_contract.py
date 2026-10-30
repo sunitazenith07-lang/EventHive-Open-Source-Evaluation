@@ -87,3 +87,28 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+def test_regression_boolean_refund_is_rejected():
+    order = new_order("O1", 1000, "CANCELLED")
+    order.update(payment_status="PAID", refund_due_paise=1000)
+    out = apply_order_event(order, event("r_bool", "refund_processed", amount_paise=True))
+    assert out["refunded_paise"] == 0
+    assert out["payment_status"] == "PAID"
+
+
+def test_regression_total_paise_reconciliation():
+    internal = [new_order("ORD-1", 5000, "PLACED")]
+    provider = [{"order_id": "ORD-1", "amount_paise": 5000, "status": "PLACED"}]
+    report = reconcile_orders(internal, provider)
+    assert report["matched"] == ["ORD-1"]
+    assert report["amount_mismatches"] == []
+
+
+def test_regression_dual_mismatch():
+    internal = [{"order_id": "O1", "amount_paise": 1000, "status": "PLACED"}]
+    provider = [{"order_id": "O1", "amount_paise": 2000, "status": "DELIVERED"}]
+    report = reconcile_orders(internal, provider)
+    assert report["amount_mismatches"] == ["O1"]
+    assert report["status_mismatches"] == ["O1"]
+    assert report["matched"] == []
