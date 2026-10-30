@@ -124,3 +124,33 @@ def test_reconcile_reports_amount_and_status_differences_separately():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+def test_payment_confirmed_after_cancellation_marks_refund_due():
+    order = new_order("O1", 1500)
+    order = apply_order_event(order, event("e1", "cancel_requested"))
+    assert order["status"] == "CANCELLED"
+    assert order["payment_status"] == "UNPAID"
+    assert order["refund_due_paise"] == 0
+
+    order = apply_order_event(order, event("e2", "payment_confirmed"))
+    assert order["status"] == "CANCELLED"
+    assert order["payment_status"] == "PAID"
+    assert order["refund_due_paise"] == 1500
+
+    order = apply_order_event(order, event("r1", "refund_processed", amount_paise=1500))
+    assert order["payment_status"] == "REFUNDED"
+    assert order["refunded_paise"] == 1500
+
+
+def test_payment_confirmed_after_rejection_marks_refund_due():
+    order = new_order("O2", 2000)
+    order = apply_order_event(order, event("e1", "restaurant_rejected"))
+    assert order["status"] == "REJECTED"
+    assert order["payment_status"] == "UNPAID"
+    assert order["refund_due_paise"] == 0
+
+    order = apply_order_event(order, event("e2", "payment_confirmed"))
+    assert order["status"] == "REJECTED"
+    assert order["payment_status"] == "PAID"
+    assert order["refund_due_paise"] == 2000

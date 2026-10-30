@@ -31,6 +31,8 @@ def apply_order_event(order: dict, event: dict) -> dict:
 
     if kind=="payment_confirmed":
         out["payment_status"]="PAID"
+        if out.get("status") in ("CANCELLED","REJECTED"):
+            out["refund_due_paise"]=out.get("total_paise",0)
     elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
         out["status"]="ACCEPTED"
     elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
