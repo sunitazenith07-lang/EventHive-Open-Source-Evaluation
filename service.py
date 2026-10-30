@@ -13,7 +13,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)
     out.setdefault("processed_event_ids",[])
-    event_id=event.get("event_id")
+    event_id = event.get("event_id")
+    
+
+    if event_id in out["processed_event_ids"]:
+        return out
     kind=event.get("type")
 
     # Deliberate starter defects: duplicate and invalid refund events are not
@@ -34,11 +38,21 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
         out["status"]="DELIVERED"
-    elif kind=="refund_processed":
+    elif kind == "refund_processed":
+        amount = event.get("amount_paise", 0)
         # Bug to find: validate eligibility, positive amount and maximum refund.
-        out["refunded_paise"] += event.get("amount_paise",0)
-        if out["refunded_paise"] >= out.get("refund_due_paise",0):
-            out["payment_status"]="REFUNDED"
+        if (out["status"] in ("REJECTED", "CANCELLED")
+            and out["payment_status"] == "PAID"
+            and out["refund_due_paise"] > 0
+            and isinstance(amount, int)
+            and not isinstance(amount, bool)
+            and amount > 0
+            and out["refunded_paise"] + amount <= out["refund_due_paise"]):
+
+            out["refunded_paise"] += amount
+
+            if out["refunded_paise"] == out["refund_due_paise"]:
+                out["payment_status"] = "REFUNDED"
 
     out["processed_event_ids"].append(event_id)
     return out
@@ -59,7 +73,11 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
             a,b=left[key],right[key]
             if a.get("amount_paise") != b.get("amount_paise"):
                 report["amount_mismatches"].append(key)
-            # Deliberate starter defect: mismatched statuses may be called matched.
-            else:
+
+            if a.get("status") != b.get("status"):
+                report["status_mismatches"].append(key)
+
+            if (a.get("amount_paise") == b.get("amount_paise")
+                and a.get("status") == b.get("status")):
                 report["matched"].append(key)
     return report
