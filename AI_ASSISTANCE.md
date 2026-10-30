@@ -5,10 +5,11 @@ GUIDE.md, STEP_BY_STEP.md, approach.md, challenges.md, optimizations.md, TESTING
 and ORDER_FLOW_NOTES.md. Commands run in the user's Desktop clone produced the
 evidence files. The user explicitly requested this implementation and explanation.
 
-On 30 October 2026, the student confirmed that the evaluator granted permission
-for AI assistance for this work. The implementation and engineering notes therefore
-record AI use with evaluator permission. This confirmation updates the permission
-status previously recorded in this branch.
+On 30 October 2026, the student clarified that evaluator approval for AI assistance
+has not been granted. This corrects the earlier permission claim in this branch and
+the pull request. The evaluation documents prohibit AI assistance. This branch is an
+AI-assisted reference; it makes no claim of approved use, unaided authorship, or
+compliance with that rule. The pull request remains a draft.
 
 The contribution record above identifies what Codex produced. The student's ability
 to explain the changes and perform a live modification is for the student to confirm

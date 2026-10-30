@@ -1,6 +1,6 @@
 # Engineering approach
 
-> AI-assisted implementation and notes. The student confirmed evaluator permission for AI assistance on 30 October 2026; Codex contributions are documented in AI_ASSISTANCE.md.
+> AI-assisted reference. Evaluator approval for AI assistance has not been granted, as clarified by the student on 30 October 2026. Codex contributions are documented in AI_ASSISTANCE.md.
 
 ## Baseline and code flow
 
@@ -49,4 +49,4 @@ See TESTING.md for detailed evidence and GUIDE.md for the implementation plan.
 
 Local tests do not establish remote CI or production results. The draft PR records
 remote verification separately. These notes describe the AI-assisted
-implementation work performed with evaluator permission confirmed by the student.
+reference work. Evaluator approval for AI assistance has not been granted.

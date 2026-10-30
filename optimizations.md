@@ -1,6 +1,6 @@
 # Optimizations and trade-offs
 
-> AI-assisted implementation and notes. The student confirmed evaluator permission for AI assistance on 30 October 2026; Codex contributions are documented in AI_ASSISTANCE.md.
+> AI-assisted reference. Evaluator approval for AI assistance has not been granted, as clarified by the student on 30 October 2026. Codex contributions are documented in AI_ASSISTANCE.md.
 
 ## Objective
 

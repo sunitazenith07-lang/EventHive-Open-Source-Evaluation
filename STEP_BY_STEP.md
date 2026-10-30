@@ -1,8 +1,8 @@
 # OrderOps, step by step
 
-> Codex performed and documented the work below with evaluator permission for AI
-> assistance, confirmed by the student on 30 October 2026. See AI_ASSISTANCE.md for
-> the contribution record.
+> Codex performed and documented the work below. The student clarified on
+> 30 October 2026 that evaluator approval for AI assistance has not been granted.
+> This is an AI-assisted reference; see AI_ASSISTANCE.md for the contribution record.
 
 ## 1. What is on your computer and on GitHub
 
@@ -366,12 +366,12 @@ This demo is reconciliation over synthetic data; it does not initiate refunds.
 | ORDER_FLOW_NOTES.md | One executed event sequence and its expected/observed states. |
 | GUIDE.md | Summary, requirements, diagram, plan, and a compact implementation overview. |
 | STEP_BY_STEP.md | This detailed explanation of the work and every service-code block. |
-| AI_ASSISTANCE.md | Codex contributions and evaluator permission confirmed by the student. |
+| AI_ASSISTANCE.md | Codex contributions and the corrected status: AI assistance has not been approved. |
 | evidence/ | Machine-generated logs and scenario outputs supporting the notes. |
 
-These notes describe the work Codex performed with evaluator permission for AI
-assistance, as confirmed by the student. The student's own review and ability to
-explain the changes are separate from the recorded implementation and test evidence.
+These notes describe the work Codex performed. Evaluator approval for AI assistance
+has not been granted. The student's own review and ability to explain the changes
+are separate from the recorded implementation and test evidence.
 
 ## 10. Understand commit, push, pull request, and CI
 
@@ -398,9 +398,10 @@ branch, so later `git push` can use that destination by default.
 
 The draft PR targets `sunitazenith07-lang/OrderOps-Open-Source-Evaluation:main` from
 `omparida-wq:fix/orderops-refund-safety`. Its description records the AI assistance
-and the evaluator's permission confirmed by the student. Any personal declaration
-about independently explaining or modifying the code is left for the student to
-confirm after review. The PR is not merged by this workflow.
+and the corrected status that evaluator approval for AI assistance has not been
+granted. Any personal declaration about independently explaining or modifying the
+code is left for the student to confirm after review. The PR remains a draft and is
+not merged by this workflow.
 
 The existing GitHub Actions test job uses Python 3.11. Remote results need separate
 verification because a successful local Python 3.14 run does not itself prove CI

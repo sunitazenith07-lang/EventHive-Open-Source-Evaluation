@@ -1,6 +1,6 @@
-> **AI assistance with evaluator permission:** These changes and engineering notes
-> were prepared with Codex. The student confirmed evaluator permission for this AI
-> assistance on 30 October 2026. See [AI_ASSISTANCE.md](AI_ASSISTANCE.md).
+> **AI-assisted reference:** These changes and engineering notes were prepared with
+> Codex. The student clarified on 30 October 2026 that evaluator approval for AI
+> assistance has not been granted. See [AI_ASSISTANCE.md](AI_ASSISTANCE.md).
 >
 > Start with [STEP_BY_STEP.md](STEP_BY_STEP.md) for the full beginner walkthrough,
 > or [GUIDE.md](GUIDE.md) for requirements, state flow, and implementation decisions.
