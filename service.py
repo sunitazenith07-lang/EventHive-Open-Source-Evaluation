@@ -61,6 +61,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     return out
 
 
+def _amount(record: dict):
+    """Provider rows use amount_paise; internal orders (new_order) use total_paise."""
+    return record["amount_paise"] if "amount_paise" in record else record.get("total_paise")
+
+
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     """Compare transaction summaries keyed by order_id."""
     left={r.get("order_id"):r for r in internal}
@@ -74,7 +79,7 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
             report["missing_from_internal"].append(key)
         else:
             a,b=left[key],right[key]
-            amount_ok=a.get("amount_paise")==b.get("amount_paise")
+            amount_ok=_amount(a)==_amount(b)
             status_ok=a.get("status")==b.get("status")
             # An order can differ in both ways; each is reported separately.
             if not amount_ok:

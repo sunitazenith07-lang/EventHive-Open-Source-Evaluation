@@ -93,3 +93,18 @@ def test_status_mismatches_are_sorted():
     internal=[{"order_id":oid,"amount_paise":1,"status":"PLACED"} for oid in ["C","A","B"]]
     provider=[{"order_id":oid,"amount_paise":1,"status":"DELIVERED"} for oid in ["B","C","A"]]
     assert reconcile_orders(internal,provider)["status_mismatches"]==["A","B","C"]
+
+
+# Bug 4: internal orders store their amount as total_paise
+
+def test_internal_total_paise_is_compared_with_provider_amount():
+    report=reconcile_orders([new_order("A",45900)],
+        [{"order_id":"A","amount_paise":45900,"status":"PLACED"}])
+    assert report["matched"]==["A"]
+    assert report["amount_mismatches"]==[]
+
+
+def test_internal_total_paise_mismatch_is_reported():
+    report=reconcile_orders([new_order("A",45900)],
+        [{"order_id":"A","amount_paise":45000,"status":"PLACED"}])
+    assert report["amount_mismatches"]==["A"]
