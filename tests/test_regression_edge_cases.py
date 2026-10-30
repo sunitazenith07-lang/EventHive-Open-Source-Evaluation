@@ -154,3 +154,4 @@ def test_refund_attempt_on_delivered_order_rejected():
     res = apply_order_event(order, ev("REF-BAD", "refund_processed", amount_paise=5000))
     assert res["refunded_paise"] == 0
     assert res["payment_status"] == "PAID"
+
