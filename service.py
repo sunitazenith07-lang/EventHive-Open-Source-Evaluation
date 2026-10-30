@@ -34,10 +34,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     if not event_id or event_id in out["processed_event_ids"]:
         return out
 
-    # Deliberate starter defects: duplicate and invalid refund events are not
-    # fully protected, and some transitions need tighter validation.
-    if kind=="payment_confirmed":
+    if kind=="payment_confirmed" and out["payment_status"]=="UNPAID":
         out["payment_status"]="PAID"
+        # Payment that lands after a cancel/reject is owed back in full.
+        if out.get("status") in REFUNDABLE_STATUSES:
+            out["refund_due_paise"]=out.get("total_paise",0)
     elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
         out["status"]="ACCEPTED"
     elif kind=="restaurant_rejected" and out.get("status")=="PLACED":

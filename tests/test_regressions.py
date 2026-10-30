@@ -108,3 +108,19 @@ def test_internal_total_paise_mismatch_is_reported():
     report=reconcile_orders([new_order("A",45900)],
         [{"order_id":"A","amount_paise":45000,"status":"PLACED"}])
     assert report["amount_mismatches"]==["A"]
+
+
+# Bug 5: payment_confirmed was accepted in any payment state
+
+def test_payment_after_full_refund_does_not_reset_status():
+    order=apply_order_event(refundable_order(),event("r1","refund_processed",amount_paise=1000))
+    out=apply_order_event(order,event("p2","payment_confirmed"))
+    assert out["payment_status"]=="REFUNDED"
+
+
+def test_payment_after_cancellation_creates_refund_due():
+    order=apply_order_event(new_order("O1",1000),event("c1","cancel_requested"))
+    assert order["refund_due_paise"]==0
+    out=apply_order_event(order,event("p1","payment_confirmed"))
+    assert out["payment_status"]=="PAID"
+    assert out["refund_due_paise"]==1000
