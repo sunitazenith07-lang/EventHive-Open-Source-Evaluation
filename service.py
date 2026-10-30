@@ -45,6 +45,8 @@ def apply_order_event(order: dict, event: dict) -> dict:
             and not isinstance(amount, bool)
             and amount > 0
             and amount <= out["refund_due_paise"] - out["refunded_paise"]
+            and out["payment_status"] == "PAID"
+            and out["status"] in ("REJECTED", "CANCELLED")
         ):
             out["refunded_paise"] += amount
 
