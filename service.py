@@ -16,6 +16,10 @@ def apply_order_event(order: dict, event: dict) -> dict:
     event_id=event.get("event_id")
     kind=event.get("type")
 
+    # Without an event_id a replay cannot be detected, so the event is ignored.
+    if not event_id or event_id in out["processed_event_ids"]:
+        return out
+
     # Deliberate starter defects: duplicate and invalid refund events are not
     # fully protected, and some transitions need tighter validation.
     if kind=="payment_confirmed":
