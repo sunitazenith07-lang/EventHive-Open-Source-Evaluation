@@ -126,14 +126,14 @@ TEST_RESULT
 -After fixing duplicates: 41 failed.
 -After fixing refunds: 8 failed.
 -After fixing status mismatch: all passing.
--Final, with the new tests: 226 passed.
+-After the bug fixes, with the new tests: 226 passed.
+-After the quality-of-life additions in Section 6: 236 passed.
 
 EDGE CASES CHECKED
 -Ran all the events in records.json and no order was refunded more than it was due.
 -Ran reconciliation on the full dataset and it worked without crashing.
 
 KNOWN LIMITATIONS
--If one side has the same order ID twice, only the last one is kept.
 -Events that arrive in the wrong order are ignored, not saved for later.
 -The duplicate check gets slower as more events are processed.
 ## 6. Quality-of-life additions
