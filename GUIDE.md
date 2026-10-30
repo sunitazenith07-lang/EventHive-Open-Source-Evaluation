@@ -1,6 +1,6 @@
 # OrderOps: explanation, requirements, plan, and working reference
 
-> AI-assisted reference: this document records work performed by Codex, not an unaided student submission.
+> AI-assisted implementation and notes. The student confirmed evaluator permission for AI assistance on 30 October 2026; Codex contributions are documented in AI_ASSISTANCE.md.
 
 ## What the problem is asking
 
@@ -40,7 +40,10 @@ The repository has newer instructions than the attached two-page PDF. Its curren
 Markdown statement adds `approach.md`, `challenges.md`, and `optimizations.md` as
 mandatory documentation worth 15 marks in total, and changes the rubric allocation.
 The repository checklist identifies the Markdown statement as the source of truth
-when it differs from the PDF. Both versions prohibit AI assistance.
+when it differs from the PDF. The published documents contain a general restriction
+on AI assistance. On 30 October 2026, the student confirmed that the evaluator had
+granted permission for AI assistance for this work. The contribution record reflects
+that permission.
 
 ## Order flow
 

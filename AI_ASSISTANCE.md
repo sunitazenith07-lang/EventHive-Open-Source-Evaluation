@@ -5,11 +5,14 @@ GUIDE.md, STEP_BY_STEP.md, approach.md, challenges.md, optimizations.md, TESTING
 and ORDER_FLOW_NOTES.md. Commands run in the user's Desktop clone produced the
 evidence files. The user explicitly requested this implementation and explanation.
 
-The evaluation's individual-work policy prohibits AI assistance. This branch is an
-AI-assisted reference and does not qualify as an unaided submission under that rule.
-The proposed pull request must state this prominently and remain a draft unless the
-user and evaluator resolve the permitted use. No claim of policy compliance or
-independent authorship is made. No integrity declaration is signed.
+On 30 October 2026, the student confirmed that the evaluator granted permission
+for AI assistance for this work. The implementation and engineering notes therefore
+record AI use with evaluator permission. This confirmation updates the permission
+status previously recorded in this branch.
+
+The contribution record above identifies what Codex produced. The student's ability
+to explain the changes and perform a live modification is for the student to confirm
+after review; no such statement is made on the student's behalf.
 
 The untouched AI_USAGE_TEMPLATE.md is an upstream template, not a completed claim.
 

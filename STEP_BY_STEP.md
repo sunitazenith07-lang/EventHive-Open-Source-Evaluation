@@ -1,7 +1,8 @@
 # OrderOps, step by step
 
-> AI-assisted reference. Codex performed and documented the work below. The evaluation
-> prohibits AI-generated solutions, so this is not an unaided student submission.
+> Codex performed and documented the work below with evaluator permission for AI
+> assistance, confirmed by the student on 30 October 2026. See AI_ASSISTANCE.md for
+> the contribution record.
 
 ## 1. What is on your computer and on GitHub
 
@@ -365,11 +366,12 @@ This demo is reconciliation over synthetic data; it does not initiate refunds.
 | ORDER_FLOW_NOTES.md | One executed event sequence and its expected/observed states. |
 | GUIDE.md | Summary, requirements, diagram, plan, and a compact implementation overview. |
 | STEP_BY_STEP.md | This detailed explanation of the work and every service-code block. |
-| AI_ASSISTANCE.md | Honest provenance and the evaluation-policy limitation. |
+| AI_ASSISTANCE.md | Codex contributions and evaluator permission confirmed by the student. |
 | evidence/ | Machine-generated logs and scenario outputs supporting the notes. |
 
-These notes describe work performed by Codex. They do not invent a student debugging
-story, claim unaided authorship, or sign the upstream integrity declaration.
+These notes describe the work Codex performed with evaluator permission for AI
+assistance, as confirmed by the student. The student's own review and ability to
+explain the changes are separate from the recorded implementation and test evidence.
 
 ## 10. Understand commit, push, pull request, and CI
 
@@ -395,9 +397,10 @@ commit. `--cached` inspects the selected changes. The push's `-u` records the up
 branch, so later `git push` can use that destination by default.
 
 The draft PR targets `sunitazenith07-lang/OrderOps-Open-Source-Evaluation:main` from
-`omparida-wq:fix/orderops-refund-safety`. Its description must prominently disclose AI
-assistance. Integrity checkboxes asserting independent work or AI-policy compliance
-must stay unchecked. The PR is not merged by this workflow.
+`omparida-wq:fix/orderops-refund-safety`. Its description records the AI assistance
+and the evaluator's permission confirmed by the student. Any personal declaration
+about independently explaining or modifying the code is left for the student to
+confirm after review. The PR is not merged by this workflow.
 
 The existing GitHub Actions test job uses Python 3.11. Remote results need separate
 verification because a successful local Python 3.14 run does not itself prove CI
