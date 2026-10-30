@@ -129,41 +129,28 @@ TEST_RESULT
 -After the bug fixes, with the new tests: 226 passed.
 -After the quality-of-life additions in Section 6: 236 passed.
 
-EDGE CASES CHECKED
--Ran all the events in records.json and no order was refunded more than it was due.
--Ran reconciliation on the full dataset and it worked without crashing.
-
 KNOWN LIMITATIONS
 -Events that arrive in the wrong order are ignored, not saved for later.
 -The duplicate check gets slower as more events are processed.
 ## 6. Quality-of-life additions
--After all tests passed, I looked for inputs the tests don't cover and small features that made sense. Each one is a separate commit.
+-Adding few features that make sense apart from the test cases.
 
 1.Malformed events crashed the code
-    -apply_order_event(order, None) or a string/list event crashed with AttributeError, because the code calls event.get().
-    -Requirement 7 says bad input must not corrupt state, and a crash in a batch would stop every event after it.
-    -Now a non-dict event returns the order unchanged and isn't recorded.
-    -Test: test_non_dict_event_is_ignored (None, a string, a list, a number).
+    -Passing None, a string or a list as an event crashed the code.
+    -One bad event in a batch would stop all the events after it.
+    -Now anything that isn't a proper event is ignored and the order stays the same.
 2.Reconciliation rows with no order ID
-    -Rows with no order_id were all keyed under None, so several broken rows became one fake order reported as missing_from_provider: [None].
-    -A None row in the list crashed the function.
-    -Now rows that aren't dicts or have no/empty order_id are skipped and their positions are listed in invalid_internal_rows / invalid_provider_rows, so someone can find and fix them.
-    -Test: test_rows_without_order_id_are_reported_not_merged.
+    -Rows with no order ID were all grouped together as one fake order, and an empty row crashed the function.
+    -Now these rows are skipped and listed separately, so someone can find and fix them.
 3.Duplicate order IDs in reconciliation
-    -If one side had the same order_id twice (for example amounts 1 and 2), the dict kept only the last row. If that last row agreed with the other side, the order was reported as matched, which hid a real problem.
-    -Now any ID that appears more than once on either side is listed in duplicate_order_ids and is not put in matched or any mismatch list, because there's no way to know which copy is right.
-    -This replaces the "only the last one is kept" limitation from Section 5.
-    -Test: test_duplicate_order_id_is_reported_not_matched.
-4.No way to process a batch of events
-    -apply_order_event handles one event on one order. To run the 219 events in records.json against the 150 orders I had to write my own loop, matching each event's order_id to an order.
-    -Added apply_events(orders, events). It applies events in order, keyed by order_id, and returns the updated orders plus the positions of events whose order_id is missing or unknown, so they aren't silently lost.
-    -The input orders are not changed, same as apply_order_event.
-    -Tests: test_apply_events_routes_by_order_id_and_reports_unknown, and test_dataset_refunds_never_exceed_due, which runs the whole dataset and checks no order is refunded more than it's due. That turns my one-off manual check into a permanent test.
-5.Optional stretch: awaiting-refund CSV report
-    -The brief allows at most one stretch. I picked this one because refund safety is the core of the task, and support staff need a list of customers who are still owed money.
-    -awaiting_refund_csv(orders) returns CSV text with order_id, status, refund_due_paise, refunded_paise and outstanding_paise, for every order where refund_due_paise > refunded_paise, sorted by order_id so the output is always the same.
-    -Fully refunded and never-refundable orders are left out. Empty input gives just the header row.
-    -It returns a string instead of writing a file, so it's easy to test and the caller decides where to save it.
-    -python -m main now also applies four sample events to ORD-101 (paid, rejected, refund of 20000, the same refund replayed) and prints the report: ORD-101,REJECTED,45900,20000,25900. That shows the replay was ignored.
-    -On the full dataset (records.json events applied with apply_events) the report lists 31 orders still awaiting a refund.
-    -Tests: test_awaiting_refund_csv_lists_only_outstanding_orders_sorted, test_awaiting_refund_csv_empty_input_has_header_only.
+    -If one side had the same order ID twice, only the last row was kept. If that row matched, a real problem was hidden.
+    -Now any order ID that appears more than once is listed as a duplicate instead of being matched.
+4.Processing a batch of events
+    -apply_order_event only handles one event at a time, so I had to write my own loop to run the whole dataset.
+    -Added apply_events, which runs a list of events on the right orders and lists any events whose order couldn't be found.
+    -Also added a test that runs the whole dataset and checks no order is refunded more than it's due.
+5.Stretch: awaiting-refund report
+    -Picked this stretch because refunds are the main focus of the task, and support staff need to know which customers are still owed money.
+    -awaiting_refund_csv creates a CSV of every order that still has money to be refunded, sorted by order ID.
+    -The demo now runs a refund on ORD-101, replays the same refund, and shows the report. The replay is ignored.
+    -On the full dataset, 31 orders are still waiting for a refund.
