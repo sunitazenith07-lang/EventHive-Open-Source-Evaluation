@@ -1,3 +1,4 @@
+import pytest
 from models import new_order
 from service import apply_order_event, reconcile_orders
 
@@ -64,6 +65,16 @@ def test_partial_refund_is_not_marked_complete():
     assert out["payment_status"]=="PAID"
 
 
+def test_duplicate_refund_event_is_ignored():
+    order=new_order("O1",1000,"CANCELLED")
+    order.update(payment_status="PAID",refund_due_paise=1000)
+    refund=event("r1","refund_processed",amount_paise=400)
+    first=apply_order_event(order,refund)
+    second=apply_order_event(first,refund)
+    assert second["refunded_paise"]==400
+    assert second["payment_status"]=="PAID"
+
+
 def test_delivery_state_flow():
     order=new_order("O1",1000)
     for e in [event("1","restaurant_accepted"),event("2","dispatch_started"),event("3","order_delivered")]:
@@ -87,3 +98,26 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+@pytest.mark.parametrize("event", [None, {}, {"event_id": "E"}, {"event_id": "E", "type": "unknown"}, "bad", ["bad"]])
+def test_malformed_events_are_ignored(event):
+    order = new_order("O1", 1000, "PLACED")
+    result = apply_order_event(order, event)
+    assert result == order
+
+
+@pytest.mark.parametrize(
+    "internal, provider, expected",
+    [
+        ([None, {"order_id": "A", "amount_paise": 100, "status": "PLACED"}], [{"order_id": "A", "amount_paise": 100, "status": "PLACED"}], {"matched": ["A"]}),
+        ([{"order_id": "A", "amount_paise": 100, "status": "PLACED"}], [None, {"order_id": "A", "amount_paise": 100, "status": "PLACED"}], {"matched": ["A"]}),
+        ([None], [
+            {"order_id": "B", "amount_paise": 50, "status": "PLACED"}
+        ], {"missing_from_internal": ["B"]}),
+    ],
+)
+def test_reconcile_skips_malformed_rows(internal, provider, expected):
+    report = reconcile_orders(internal, provider)
+    for key, value in expected.items():
+        assert report[key] == value
