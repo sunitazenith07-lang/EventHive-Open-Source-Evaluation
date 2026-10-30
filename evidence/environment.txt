@@ -1,0 +1,5 @@
+Python 3.14.7
+pytest 9.2.0
+macOS
+Baseline commit e006d241e3d8ddf6520021a6ab554306a31a200b
+Branch fix/orderops-refund-safety

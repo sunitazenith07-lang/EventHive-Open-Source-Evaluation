@@ -1,0 +1,98 @@
+[
+  {
+    "event": {
+      "event_id": "p1",
+      "type": "payment_confirmed"
+    },
+    "result": {
+      "order_id": "EXAMPLE",
+      "total_paise": 1000,
+      "status": "PLACED",
+      "payment_status": "PAID",
+      "refund_due_paise": 0,
+      "refunded_paise": 0,
+      "processed_event_ids": [
+        "p1"
+      ]
+    }
+  },
+  {
+    "event": {
+      "event_id": "c1",
+      "type": "cancel_requested"
+    },
+    "result": {
+      "order_id": "EXAMPLE",
+      "total_paise": 1000,
+      "status": "CANCELLED",
+      "payment_status": "PAID",
+      "refund_due_paise": 1000,
+      "refunded_paise": 0,
+      "processed_event_ids": [
+        "p1",
+        "c1"
+      ]
+    }
+  },
+  {
+    "event": {
+      "event_id": "r1",
+      "type": "refund_processed",
+      "amount_paise": 400
+    },
+    "result": {
+      "order_id": "EXAMPLE",
+      "total_paise": 1000,
+      "status": "CANCELLED",
+      "payment_status": "PAID",
+      "refund_due_paise": 1000,
+      "refunded_paise": 400,
+      "processed_event_ids": [
+        "p1",
+        "c1",
+        "r1"
+      ]
+    }
+  },
+  {
+    "event": {
+      "event_id": "r1",
+      "type": "refund_processed",
+      "amount_paise": 400
+    },
+    "result": {
+      "order_id": "EXAMPLE",
+      "total_paise": 1000,
+      "status": "CANCELLED",
+      "payment_status": "PAID",
+      "refund_due_paise": 1000,
+      "refunded_paise": 400,
+      "processed_event_ids": [
+        "p1",
+        "c1",
+        "r1"
+      ]
+    }
+  },
+  {
+    "event": {
+      "event_id": "r2",
+      "type": "refund_processed",
+      "amount_paise": 600
+    },
+    "result": {
+      "order_id": "EXAMPLE",
+      "total_paise": 1000,
+      "status": "CANCELLED",
+      "payment_status": "REFUNDED",
+      "refund_due_paise": 1000,
+      "refunded_paise": 1000,
+      "processed_event_ids": [
+        "p1",
+        "c1",
+        "r1",
+        "r2"
+      ]
+    }
+  }
+]
