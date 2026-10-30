@@ -72,7 +72,10 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
             a,b=left[key],right[key]
             if a.get("amount_paise") != b.get("amount_paise"):
                 report["amount_mismatches"].append(key)
-            # Deliberate starter defect: mismatched statuses may be called matched.
+
+            elif a.get("status") != b.get("status"):
+                report["status_mismatches"].append(key)
+
             else:
                 report["matched"].append(key)
     return report
