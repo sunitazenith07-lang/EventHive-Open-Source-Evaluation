@@ -51,7 +51,7 @@ def apply_order_event(order: dict, event: dict) -> dict:
 
     if not isinstance(event_type, str) or event_type not in VALID_EVENTS:
         return out
-    
+
 
     # Prevent replaying an already processed event.
     if event_id in processed_ids:
