@@ -30,3 +30,4 @@ For each major defect, describe the observed symptom, the hypothesis you tested,
 - Remaining failures or known limitations:
 
 Record actual engineering decisions and evidence. Do not claim tests or experiments you did not run.
+
