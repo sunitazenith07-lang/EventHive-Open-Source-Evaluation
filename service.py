@@ -34,6 +34,15 @@ def _refund_allowed(order: dict, amount) -> bool:
     return amount<=due-refunded
 
 
+def _history(order: dict):
+    """The order's processed event IDs as a list, or None if they cannot be read.
+    Missing or null means no events yet; a tuple is used as a list."""
+    ids=order.get("processed_event_ids")
+    if ids is None:
+        return []
+    return list(ids) if isinstance(ids,(list,tuple)) else None
+
+
 def _owe_full_total(order: dict) -> None:
     """A paid order that will not be delivered owes its full total back. A null
     or text total is not copied, so no refund can be checked against it."""
@@ -51,7 +60,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("payment_status","UNPAID")
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)
-    out.setdefault("processed_event_ids",[])
+    history=_history(out)
+    # If past events cannot be read, applying this one could repeat one of them.
+    if history is None:
+        return out
+    out["processed_event_ids"]=history
     if not isinstance(event,dict):
         return out
     event_id=event.get("event_id")
@@ -104,7 +117,7 @@ def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
     # processed_event_ids is per order, but an event_id names one event overall,
     # so the same ID arriving for a different order is not applied again.
     used_by={eid:oid for oid,o in by_id.items()
-             for eid in o.get("processed_event_ids",[]) if _valid_id(eid)}
+             for eid in (_history(o) or []) if _valid_id(eid)}
     skipped={"invalid_orders":invalid,"duplicate_order_ids":sorted(dupes,key=str),
              "unrouted_events":[],"cross_order_duplicates":[]}
     for i,e in enumerate(events):

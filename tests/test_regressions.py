@@ -353,3 +353,38 @@ def test_awaiting_refund_csv_skips_rows_with_broken_amounts():
     broken["refund_due_paise"]=None
     lines=awaiting_refund_csv([broken,refundable_order(300,"B")]).splitlines()
     assert lines[1:]==["B,CANCELLED,300,0,300"]
+
+
+# Follow-up 6: processed_event_ids that was null or not a list crashed, and a
+# text value was searched as a string ("E1" was found inside "E12").
+
+def test_null_event_history_counts_as_empty():
+    order=new_order("O1",1000)
+    order["processed_event_ids"]=None
+    out=apply_order_event(order,event("p1","payment_confirmed"))
+    assert out["payment_status"]=="PAID"
+    assert out["processed_event_ids"]==["p1"]
+
+
+def test_tuple_event_history_is_used_as_a_list():
+    order=new_order("O1",1000)
+    order["processed_event_ids"]=("p1",)
+    assert apply_order_event(order,event("p1","payment_confirmed"))["payment_status"]=="UNPAID"
+    out=apply_order_event(order,event("p2","payment_confirmed"))
+    assert out["processed_event_ids"]==["p1","p2"]
+
+
+@pytest.mark.parametrize("history",["E12",5,{"E1":1}])
+def test_unreadable_event_history_means_events_are_ignored(history):
+    order=new_order("O1",1000)
+    order["processed_event_ids"]=history
+    out=apply_order_event(order,event("E99","payment_confirmed"))
+    assert out["payment_status"]=="UNPAID"
+    assert out["processed_event_ids"]==history
+
+
+def test_apply_events_with_null_event_history():
+    order=new_order("O1",1000)
+    order["processed_event_ids"]=None
+    result,_=apply_events([order],[{"event_id":"p1","order_id":"O1","type":"payment_confirmed"}])
+    assert result["O1"]["payment_status"]=="PAID"
