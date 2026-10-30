@@ -1,4 +1,6 @@
 """Regression tests for defects fixed in service.py."""
+from copy import deepcopy
+
 import pytest
 from models import new_order
 from service import apply_events, apply_order_event, awaiting_refund_csv, reconcile_orders
@@ -213,3 +215,16 @@ def test_awaiting_refund_csv_lists_only_outstanding_orders_sorted():
 
 def test_awaiting_refund_csv_empty_input_has_header_only():
     assert awaiting_refund_csv([])=="order_id,status,refund_due_paise,refunded_paise,outstanding_paise\n"
+
+
+# Follow-up 1: test_input_order_is_not_mutated compares against dict(order),
+# which shares processed_event_ids, so it cannot see that list being changed.
+
+@pytest.mark.parametrize("kind",["payment_confirmed","restaurant_accepted","restaurant_rejected",
+    "cancel_requested","dispatch_started","order_delivered","refund_processed"])
+def test_input_order_and_nested_event_list_are_not_mutated(kind):
+    order=refundable_order() if kind=="refund_processed" else new_order("O1",1000)
+    order["processed_event_ids"]=["earlier"]
+    before=deepcopy(order)
+    apply_order_event(order,event("e1",kind,amount_paise=100))
+    assert order==before
