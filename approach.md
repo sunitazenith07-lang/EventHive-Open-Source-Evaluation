@@ -144,3 +144,8 @@ KNOWN LIMITATIONS
     -Requirement 7 says bad input must not corrupt state, and a crash in a batch would stop every event after it.
     -Now a non-dict event returns the order unchanged and isn't recorded.
     -Test: test_non_dict_event_is_ignored (None, a string, a list, a number).
+2.Reconciliation rows with no order ID
+    -Rows with no order_id were all keyed under None, so several broken rows became one fake order reported as missing_from_provider: [None].
+    -A None row in the list crashed the function.
+    -Now rows that aren't dicts or have no/empty order_id are skipped and their positions are listed in invalid_internal_rows / invalid_provider_rows, so someone can find and fix them.
+    -Test: test_rows_without_order_id_are_reported_not_merged.

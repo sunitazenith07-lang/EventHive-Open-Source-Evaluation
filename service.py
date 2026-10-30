@@ -69,12 +69,24 @@ def _amount(record: dict):
     return record["amount_paise"] if "amount_paise" in record else record.get("total_paise")
 
 
+def _index_rows(rows: list) -> tuple[dict, list[int]]:
+    """Key rows by order_id; return the positions of rows that have no usable ID."""
+    keyed,invalid={},[]
+    for i,r in enumerate(rows):
+        if isinstance(r,dict) and r.get("order_id"):
+            keyed[r["order_id"]]=r
+        else:
+            invalid.append(i)
+    return keyed,invalid
+
+
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     """Compare transaction summaries keyed by order_id."""
-    left={r.get("order_id"):r for r in internal}
-    right={r.get("order_id"):r for r in provider}
+    left,bad_left=_index_rows(internal)
+    right,bad_right=_index_rows(provider)
     report={"matched":[],"missing_from_provider":[],"missing_from_internal":[],
-            "amount_mismatches":[],"status_mismatches":[]}
+            "amount_mismatches":[],"status_mismatches":[],
+            "invalid_internal_rows":bad_left,"invalid_provider_rows":bad_right}
     for key in sorted(set(left)|set(right),key=lambda x:str(x)):
         if key not in right:
             report["missing_from_provider"].append(key)

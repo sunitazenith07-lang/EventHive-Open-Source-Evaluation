@@ -136,3 +136,16 @@ def test_non_dict_event_is_ignored(bad):
     out=apply_order_event(order,bad)
     assert out["payment_status"]=="UNPAID"
     assert out["processed_event_ids"]==[]
+
+
+# QoL 2: malformed reconciliation rows
+
+def test_rows_without_order_id_are_reported_not_merged():
+    internal=[{"amount_paise":1,"status":"PLACED"},None,
+              {"order_id":"A","amount_paise":5,"status":"PLACED"},{"order_id":"","amount_paise":2}]
+    provider=[{"order_id":"A","amount_paise":5,"status":"PLACED"},"junk"]
+    report=reconcile_orders(internal,provider)
+    assert report["matched"]==["A"]
+    assert report["missing_from_provider"]==[]
+    assert report["invalid_internal_rows"]==[0,1,3]
+    assert report["invalid_provider_rows"]==[1]
