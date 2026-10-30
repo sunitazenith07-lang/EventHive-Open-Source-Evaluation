@@ -1,24 +1,9 @@
-# optimizations.md - Required submission
+# Optimizations and trade-offs
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
+## Implemented
+Reconciliation builds dictionaries keyed by order_id once, then checks the union of keys in sorted order. This keeps comparison linear in the number of records aside from sorting and produces deterministic output. Status and amount checks are independent, so a record can report both discrepancies; it is marked matched only if neither differs.
 
-## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+Event handling uses a deep copy to preserve the existing non-mutating contract. Explicit guards favor readable state safety over compact transition tables. Processed IDs are a list to preserve the existing order schema and expected serialization; membership is linear, which is acceptable for this small synthetic service.
 
-## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
-
-## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
-
-## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
-
-## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
-
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+## Evidence and future work
+The measurable validation was the suite changing from 62 failed/150 passed at baseline to 212 passed after implementation. No timing or large-dataset benchmark was run, so no performance gain is claimed. For a persistent high-volume service, I would consider a set or durable idempotency store, concurrency-safe updates, and validated schemas at the API boundary; those add dependencies and operational complexity and are not needed for this in-memory demo.
