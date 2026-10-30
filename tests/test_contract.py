@@ -87,3 +87,51 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+def test_duplicate_refund_event_is_idempotent():
+    order = new_order("O1", 1000, "CANCELLED")
+    order.update(payment_status="PAID", refund_due_paise=1000)
+    refund = event("r1", "refund_processed", amount_paise=400)
+
+    once = apply_order_event(order, refund)
+    twice = apply_order_event(once, refund)
+
+    assert twice["refunded_paise"] == 400
+    assert twice["payment_status"] == "PAID"
+    assert twice["processed_event_ids"] == ["r1"]
+
+
+def test_invalid_or_missing_event_fields_are_ignored():
+    order = new_order("O1", 1000)
+
+    for invalid_event in (
+        {},
+        {"event_id": "e1"},
+        {"event_id": "e2", "type": []},
+        {"event_id": "", "type": "payment_confirmed"},
+    ):
+        result = apply_order_event(order, invalid_event)
+        assert result["status"] == "PLACED"
+        assert result["payment_status"] == "UNPAID"
+        assert result["processed_event_ids"] == []
+
+
+def test_payment_confirmed_after_cancellation_sets_refund_due():
+    order = new_order("O1", 1000, "CANCELLED")
+
+    result = apply_order_event(order, event("p1", "payment_confirmed"))
+
+    assert result["payment_status"] == "PAID"
+    assert result["refund_due_paise"] == 1000
+
+
+def test_reconciliation_reports_amount_and_status_mismatches_separately():
+    report = reconcile_orders(
+        [{"order_id": "O1", "amount_paise": 1000, "status": "PLACED"}],
+        [{"order_id": "O1", "amount_paise": 900, "status": "DELIVERED"}],
+    )
+
+    assert report["amount_mismatches"] == ["O1"]
+    assert report["status_mismatches"] == ["O1"]
+    assert report["matched"] == []
