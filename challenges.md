@@ -1,23 +1,7 @@
-# challenges.md - COMPULSORY submission
+# Challenges and debugging
 
-This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
+The main tricky case was separating an invalid event from a valid event that happens to leave visible order fields unchanged. The starter appended event IDs broadly, which could make a later corrected/replayed event look like a duplicate. I changed the handler to return an unchanged deep copy for missing/blank IDs, duplicate IDs, unsupported event types, and illegal transitions; only an event that actually applies is recorded.
 
-## 1. Challenge or confusing behaviour
-What specific state transition, test failure, data condition, or code path was difficult to understand?
+Refund notifications required checks against the cumulative amount, not only the incoming notification. A partial refund must leave payment PAID; a repeated notification must not increase refunded_paise; zero, negative, non-integer, and over-due amounts must not be applied. The revised guard checks integer type (excluding bool), positivity, paid status, eligible order status, and refunded + amount <= due.
 
-## 2. Evidence
-Summarize the relevant assertion, error message, output, or minimal reproducible example. Do not include secrets or real customer data.
-
-## 3. What I tried
-List the debugging steps or experiments you actually performed and what each one showed.
-
-## 4. Resolution
-What was the root cause? What did you change, and why did that address the cause rather than hide the symptom?
-
-## 5. Proof and regression prevention
-Which test(s) demonstrate the fix? What related case could still break?
-
-## 6. Unresolved challenge or next step
-State any remaining limitation and how you would investigate it next.
-
-If you did not encounter a major blocker, say that clearly and describe the hardest edge case you deliberately tested and what it taught you. Do not manufacture a story; describe observable engineering work.
+The baseline evidence was 62 failed, 150 passed; the final visible suite reported 212 passed. This included the reconciliation contract: when equal-amount records have different statuses, the ID must appear in status_mismatches, not matched. No production provider integration is present, so transport retries and concurrent writes remain outside this offline exercise.
