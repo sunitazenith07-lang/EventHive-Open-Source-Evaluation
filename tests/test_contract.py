@@ -87,3 +87,87 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+def test_missing_event_id_is_ignored():
+    order = new_order('01', 1000)
+    out = apply_order_event(order, {'type': 'payment_confirmed'})
+
+    assert out['payment_status'] == 'UNPAID'
+    assert out['processed_event_ids'] == []
+
+def test_unknown_event_type_is_ignored():
+    order = new_order('01', 1000)
+    out = apply_order_event(order, event('e1', 'unknown_event'))
+
+    assert out['status'] == 'PLACED'
+    assert out['processed_event_ids'] == []
+
+def test_duplicate_event_id_with_different_payload_is_ignored():
+    order = new_order('01', 1000)
+
+    first = apply_order_event(order, event('e1', 'restaurant_accepted'))
+    second = apply_order_event(first, event('e1', 'restaurant_rejected'))
+
+    assert second['status'] == 'ACCEPTED'
+    assert second['processed_event_ids'] == ['e1']
+
+def test_refund_rejects_invalid_amount_types():
+    order = new_order('01', 1000, 'CANCELLED')
+    order.update(payment_status = 'PAID', refund_due_paise = 1000)
+
+    for index, amount in enumerate([True, 1.5, '100', None]):
+        out = apply_order_event(order, event(f"r{index}", "refund_processed", amount_paise = amount))
+        assert out['refunded_paise'] == 0
+
+def test_cumulative_refund_cannot_exceed_due():
+    order = new_order('01', 1000, 'CANCELLED')
+    order.update(payment_status = 'PAID', refund_due_paise = 1000)
+    first = apply_order_event(order, event('r1', 'refund_processed', amount_paise = 700))
+    second = apply_order_event(first, event('r2', 'refund_processed', amount_paise= 400))
+
+    assert second['refunded_paise'] == 700
+    assert second['payment_status'] == 'PAID'
+
+def test_exact_full_refund_marks_payment_refunded():
+    order = new_order("O1", 1000, "CANCELLED")
+    order.update(payment_status="PAID", refund_due_paise=1000)
+
+    out = apply_order_event(order, event("r1", "refund_processed", amount_paise=1000))
+
+    assert out["refunded_paise"] == 1000
+    assert out["payment_status"] == "REFUNDED"
+
+def test_paid_cancellation_sets_refund_due():
+    order = new_order("O1", 1000)
+    paid = apply_order_event(order, event("e1", "payment_confirmed"))
+    cancelled = apply_order_event(
+        paid, event("e2", "cancel_requested")
+    )
+
+    assert cancelled["status"] == "CANCELLED"
+    assert cancelled["refund_due_paise"] == 1000
+    assert cancelled["refunded_paise"] == 0
+
+def test_reconcile_ignores_malformed_records():
+    report = reconcile_orders(
+        [{"order_id": "A", "amount_paise": 100, "status": "PLACED"}, None, {}],
+        [{"order_id": "A", "amount_paise": 100, "status": "PLACED"}, None]
+    )
+    assert report["matched"] == ["A"]
+
+
+def test_reconcile_ignores_records_without_order_id():
+    report = reconcile_orders(
+        [{"amount_paise": 100, "status": "PLACED"}],
+        [{"amount_paise": 100, "status": "PLACED"}]
+    )
+    assert all(value == [] for value in report.values())
+
+
+def test_reconcile_rejects_boolean_amounts():
+    report = reconcile_orders(
+        [{"order_id": "A", "amount_paise": True, "status": "PLACED"}],
+        [{"order_id": "A", "amount_paise": 1, "status": "PLACED"}]
+    )
+    assert report["amount_mismatches"] == ["A"]
+    assert report["matched"] == []

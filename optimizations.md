@@ -1,24 +1,22 @@
 # optimizations.md - Required submission
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
-
 ## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+Improved correctness and maintainability of event processing and reconciliation.
+
 
 ## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+- Check duplicate event IDs before processing.
+- Validate refunds against the remaining balance.
+- Compare order amounts and statuses separately..
 
 ## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
+- Added safe handling of malformed reconciliation records.
+- Added integer type validation for reconciliation amounts.
+- Used deterministic sorting for reconciliation results.
+- Kept reconciliation output structure unchanged to preserve compatibility.
 
 ## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
+The first event with a given IID is accepted. Lter events with same ID are ignored.
 
 ## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
-
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+Work Done
