@@ -51,7 +51,9 @@ The original starter implementation suffered from both correctness bugs and algo
   - *Time Complexity:* Building `left` takes $O(N)$, building `right` takes $O(M)$. Union iteration takes $O((N+M) \log(N+M))$ due to sorting. Lookups within the loop take amortized $O(1)$. Total time complexity drops from $O(N \cdot M)$ to $O((N+M) \log(N+M))$.
   - *Space Complexity:* $O(N + M)$ memory to store the dictionaries.
 - **Trade-offs:** Consumes temporary heap memory to store indexed dictionaries, but completely eliminates quadratic scaling during high-volume ledger reconciliation.
-- **Verification Method:** Verified by `test_reconciliation_results_are_deterministic` across multiple list sizes ($n=1 \dots 10$) and the 150-order / 163-provider synthetic dataset (`data/records.json`) executing in under 0.05s.
+- **Verification Method:**
+  - *Automated In-Memory Verification:* `test_reconciliation_results_are_deterministic` in `test_acceptance_matrix.py` validates determinism across 10 parametrized list sizes ($n=1 \dots 10$).
+  - *Offline Dataset Benchmark:* Executing `reconcile_orders()` on `data/records.json` (150 internal orders and 163 provider records) was benchmarked separately via a standalone script, completing in $\approx 0.14\text{ ms}$ ($< 0.001\text{ s}$). Note that `data/records.json` is not directly ingested as an automated pytest fixture.
 
 ---
 

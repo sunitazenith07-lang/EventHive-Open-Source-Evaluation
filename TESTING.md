@@ -82,22 +82,26 @@ The following 5 edge cases represent critical distributed systems failure modes 
 
 ---
 
-## 5. Synthetic Dataset Validation Coverage
+## 5. Synthetic Dataset Anomaly Mapping & In-Memory Test Equivalence
 
-The test suite's coverage was mapped directly against the 219 synthetic events and 12 documented reconciliation edge cases in `data/records.json`:
+An offline inspection of `data/records.json` (150 internal orders, 163 provider records, 219 event examples) was conducted to catalog the intentional real-world anomalies present in the evaluation dataset.
 
-| Documented Dataset Anomaly | Occurrences in Dataset | Handled by Implementation? | Covered by Automated Test Suite? |
+As noted in Section 6, the automated `pytest` suite tests domain logic using isolated, in-memory fixtures (`models.new_order()`) without disk I/O to maintain deterministic, millisecond test execution. The table below maps each anomaly identified during offline dataset analysis to its corresponding in-memory automated regression test:
+
+| Documented Dataset Anomaly | Occurrences in `records.json` (Offline Audit) | Handled by Implementation? | Equivalent In-Memory Automated Test |
 |---|---|---|---|
-| Missing `event_id` | 7 events | Yes (discarded) | Yes (`test_missing_event_id_is_ignored`) |
-| Missing `order_id` / Malformed payload | 7 events | Yes (discarded) | Yes (`test_non_dictionary_event_is_ignored`) |
-| Unknown event type (`unexpected_event`) | 10 events | Yes (discarded) | Yes (`test_unknown_event_does_not_mutate_order_state`) |
-| Duplicate identical `event_id` | 11 duplicate groups | Yes (idempotent) | Yes (`test_payment_event_replay_idempotent`) |
-| Invalid refund amount types (null, bool, float, str, neg) | 17 events | Yes (rejected) | Yes (`test_invalid_refund_amounts_are_ignored`) |
-| Cumulative refund exceeding due | Documented in catalog | Yes (rejected) | Yes (`test_refunds_cannot_exceed_due`) |
-| Cancellation after dispatch | Documented in catalog | Yes (blocked) | Yes (`test_cancel_after_dispatch_is_ignored`) |
-| Provider-only records | 25 records | Yes (reported) | Yes (`test_provider_only_order_is_reported`) |
-| Internal-only records | 12 records | Yes (reported) | Yes (`test_internal_only_order_is_reported`) |
-| Dual amount + status discrepancy | 1 record (`ORD-1078`) | Yes (reported in both) | Yes (`test_reconcile_reports_amount_and_status_mismatch_together`) |
+| Missing `event_id` | 7 events | Yes (discarded) | `test_missing_event_id_is_ignored` |
+| Missing `order_id` / Malformed payload | 7 events | Yes (discarded) | `test_non_dictionary_event_is_ignored` |
+| Unknown event type (`unexpected_event`) | 10 events | Yes (discarded) | `test_unknown_event_does_not_mutate_order_state` |
+| Duplicate identical `event_id` | 11 duplicate groups (22 events) | Yes (idempotent) | `test_payment_event_replay_idempotent` |
+| Invalid refund amount types (null, bool, float, str, neg) | 17 events | Yes (rejected) | `test_invalid_refund_amounts_are_ignored` |
+| Cumulative refund exceeding due | Documented in catalog | Yes (rejected) | `test_refunds_cannot_exceed_due` |
+| Cancellation after dispatch | Documented in catalog | Yes (blocked) | `test_cancel_after_dispatch_is_ignored` |
+| Provider-only records | 25 records | Yes (reported) | `test_provider_only_order_is_reported` |
+| Internal-only records | 12 records | Yes (reported) | `test_internal_only_order_is_reported` |
+| Dual amount + status discrepancy | 1 record (`ORD-1078`) | Yes (reported in both) | `test_reconcile_reports_amount_and_status_mismatch_together` |
+
+*Note on Dataset Execution:* The automated test suite does not ingest `data/records.json` directly from disk during `pytest`. A separate offline validation script verified that passing all 219 events from `data/records.json` through `service.py` produced 0 unhandled exceptions.
 
 ---
 

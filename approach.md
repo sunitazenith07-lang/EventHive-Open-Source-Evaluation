@@ -172,7 +172,7 @@ Output verified:
 
 ### Verified Results
 - 221 automated unit and matrix tests passing.
-- 0 uncaught exceptions across all 219 synthetic events in `data/records.json`.
+- 0 uncaught exceptions across all 219 synthetic events in `data/records.json` (verified via standalone offline replay script; automated pytest suite executes programmatic in-memory tests).
 
 ### Remaining Limitations
 - In-memory event deduplication via `list` has $O(N)$ lookup complexity; for massive long-lived orders, an internal set would offer $O(1)$ lookup.
