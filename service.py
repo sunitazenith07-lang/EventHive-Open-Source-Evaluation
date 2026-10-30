@@ -74,21 +74,32 @@ def apply_order_event(order: dict, event: dict) -> dict:
     return out
 
 
-def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[int]]:
+def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
     """Apply events in order, routing each by its order_id.
 
-    Returns the updated orders keyed by order_id, and the positions of events
-    whose order_id is missing or unknown.
+    Returns the updated orders keyed by order_id, and the positions of skipped
+    events: unrouted_events (order_id missing or unknown) and
+    cross_order_duplicates (event_id already processed by a different order).
     """
     by_id={o["order_id"]:o for o in orders}
-    unrouted=[]
+    # processed_event_ids is per order, but an event_id names one event overall,
+    # so the same ID arriving for a different order is not applied again.
+    used_by={eid:oid for oid,o in by_id.items()
+             for eid in o.get("processed_event_ids",[]) if _valid_id(eid)}
+    skipped={"unrouted_events":[],"cross_order_duplicates":[]}
     for i,e in enumerate(events):
         oid=e.get("order_id") if isinstance(e,dict) else None
         if not (_valid_id(oid) and oid in by_id):
-            unrouted.append(i)
+            skipped["unrouted_events"].append(i)
             continue
+        eid=e.get("event_id")
+        if _valid_id(eid):
+            if used_by.get(eid,oid)!=oid:
+                skipped["cross_order_duplicates"].append(i)
+                continue
+            used_by[eid]=oid
         by_id[oid]=apply_order_event(by_id[oid],e)
-    return by_id,unrouted
+    return by_id,skipped
 
 
 AWAITING_REFUND_COLUMNS=["order_id","status","refund_due_paise","refunded_paise","outstanding_paise"]

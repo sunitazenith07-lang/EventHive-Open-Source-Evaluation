@@ -10,8 +10,8 @@ def event(event_id, kind, **extra):
     return {"event_id":event_id,"type":kind,**extra}
 
 
-def refundable_order(total=1000):
-    order=new_order("O1",total,"CANCELLED")
+def refundable_order(total=1000,order_id="O1"):
+    order=new_order(order_id,total,"CANCELLED")
     order.update(payment_status="PAID",refund_due_paise=total)
     return order
 
@@ -180,8 +180,9 @@ def test_apply_events_routes_by_order_id_and_reports_unknown():
             None,
             {"event_id":"5","order_id":"A","type":"restaurant_rejected"},
             {"event_id":"5","order_id":"A","type":"restaurant_rejected"}]
-    result,unrouted=apply_events(orders,events)
-    assert unrouted==[2,3,4]
+    result,skipped=apply_events(orders,events)
+    assert skipped["unrouted_events"]==[2,3,4]
+    assert skipped["cross_order_duplicates"]==[]
     assert result["A"]["status"]=="REJECTED"
     assert result["A"]["refund_due_paise"]==1000
     assert result["A"]["processed_event_ids"]==["1","5"]
@@ -262,7 +263,35 @@ def test_unhashable_order_ids_in_reconciliation_are_reported():
 
 
 def test_unhashable_event_order_id_is_unrouted():
-    result,unrouted=apply_events([new_order("A",1000)],
+    result,skipped=apply_events([new_order("A",1000)],
         [{"event_id":"e1","order_id":["A"],"type":"payment_confirmed"}])
-    assert unrouted==[0]
+    assert skipped["unrouted_events"]==[0]
     assert result["A"]["payment_status"]=="UNPAID"
+
+
+# Follow-up 3: processed_event_ids is kept per order, so one event_id sent to
+# two different orders was applied to both (a double refund).
+
+def test_event_id_reused_on_another_order_is_skipped():
+    refund={"event_id":"R-1","type":"refund_processed","amount_paise":500}
+    result,skipped=apply_events([refundable_order(500,"X"),refundable_order(500,"Y")],
+                                [{**refund,"order_id":"X"},{**refund,"order_id":"Y"}])
+    assert result["X"]["refunded_paise"]==500
+    assert result["Y"]["refunded_paise"]==0
+    assert skipped["cross_order_duplicates"]==[1]
+
+
+def test_event_id_processed_by_another_order_before_the_batch_is_skipped():
+    x=refundable_order(500,"X")
+    x["processed_event_ids"]=["R-1"]
+    result,skipped=apply_events([x,refundable_order(500,"Y")],
+        [{"event_id":"R-1","order_id":"Y","type":"refund_processed","amount_paise":500}])
+    assert result["Y"]["refunded_paise"]==0
+    assert skipped["cross_order_duplicates"]==[0]
+
+
+def test_same_order_replay_is_not_reported_as_cross_order():
+    refund={"event_id":"R-1","order_id":"X","type":"refund_processed","amount_paise":200}
+    result,skipped=apply_events([refundable_order(500,"X")],[refund,refund])
+    assert result["X"]["refunded_paise"]==200
+    assert skipped["cross_order_duplicates"]==[]
