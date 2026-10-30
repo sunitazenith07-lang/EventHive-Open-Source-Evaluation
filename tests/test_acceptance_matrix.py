@@ -181,3 +181,25 @@ def test_input_order_is_not_mutated(kind):
     before = dict(order)
     apply_order_event(order, ev("E", kind))
     assert order == before
+
+
+@pytest.mark.parametrize("payload", [None, {}, {"event_id": "E"}, {"event_id": "E", "type": "unknown"}, "bad", ["bad"], 42])
+def test_malformed_event_payloads_are_noops(payload):
+    order = new_order("O", 5000, "PLACED")
+    result = apply_order_event(order, payload)
+    assert result == order
+
+
+@pytest.mark.parametrize(
+    "internal, provider, expected",
+    [
+        ([{"order_id": "A", "amount_paise": 100, "status": "PLACED"}, None], [{"order_id": "A", "amount_paise": 100, "status": "PLACED"}], {"matched": ["A"]}),
+        ([{"order_id": "A", "amount_paise": 100, "status": "PLACED"}], [None, {"order_id": "A", "amount_paise": 100, "status": "PLACED"}], {"matched": ["A"]}),
+        ([None], [{"order_id": "B", "amount_paise": 50, "status": "PLACED"}], {"missing_from_internal": ["B"]}),
+        ([{"order_id": "C", "amount_paise": 10, "status": "PLACED"}], [None], {"missing_from_provider": ["C"]}),
+    ],
+)
+def test_reconciliation_ignores_malformed_rows(internal, provider, expected):
+    report = reconcile_orders(internal, provider)
+    for key,value in expected.items():
+        assert report[key] == value
