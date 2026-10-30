@@ -87,3 +87,90 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+def test_reconcile_maps_internal_total_to_provider_amount():
+    report = reconcile_orders(
+        [{"order_id": "A", "total_paise": 45900, "status": "PLACED"}],
+        [{"order_id": "A", "amount_paise": 45900, "status": "PLACED"}],
+    )
+
+    assert report["matched"] == ["A"]
+    assert report["amount_mismatches"] == []
+    assert report["status_mismatches"] == []
+
+
+def test_reconcile_reports_amount_and_status_mismatch_together():
+    report = reconcile_orders(
+        [{"order_id": "A", "total_paise": 100, "status": "ACCEPTED"}],
+        [{"order_id": "A", "amount_paise": 90, "status": "CANCELLED"}],
+    )
+
+    assert report["matched"] == []
+    assert report["amount_mismatches"] == ["A"]
+    assert report["status_mismatches"] == ["A"]
+
+
+def test_reconcile_does_not_match_when_amount_is_missing():
+    report = reconcile_orders(
+        [{"order_id": "A", "status": "PLACED"}],
+        [{"order_id": "A", "amount_paise": 100, "status": "PLACED"}],
+    )
+
+    assert report["matched"] == []
+    assert report["amount_mismatches"] == ["A"]
+
+def test_unhashable_event_types_are_ignored():
+    order = new_order("O1", 1000)
+
+    for invalid_type in [[], {}, ["payment_confirmed"], {"type": "payment_confirmed"}]:
+        result = apply_order_event(
+            order,
+            {"event_id": "E1", "type": invalid_type}
+        )
+
+        assert result["status"] == "PLACED"
+        assert result["payment_status"] == "UNPAID"
+        assert result["processed_event_ids"] == []
+
+
+def test_missing_event_id_is_ignored():
+    order = new_order("O1", 1000)
+
+    result = apply_order_event(
+        order,
+        {"type": "payment_confirmed"}
+    )
+
+    assert result["payment_status"] == "UNPAID"
+    assert result["processed_event_ids"] == []
+
+
+def test_duplicate_event_id_with_different_payload_is_ignored():
+    order = new_order("O1", 1000)
+
+    first = apply_order_event(
+        order,
+        {"event_id": "E1", "type": "payment_confirmed"}
+    )
+
+    second = apply_order_event(
+        first,
+        {"event_id": "E1", "type": "restaurant_accepted"}
+    )
+
+    assert second["payment_status"] == "PAID"
+    assert second["status"] == "PLACED"
+    assert second["processed_event_ids"] == ["E1"]
+
+
+def test_non_dictionary_event_is_ignored():
+    order = new_order("O1", 1000)
+
+    for invalid_event in [None, [], "payment_confirmed", 123]:
+        result = apply_order_event(order, invalid_event)
+
+        assert result["status"] == "PLACED"
+        assert result["payment_status"] == "UNPAID"
+        assert result["processed_event_ids"] == []
+
