@@ -1,24 +1,34 @@
-# optimizations.md - Required submission
+# Optimizations and trade-offs
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
+> AI-assisted reference. Evaluator approval for AI assistance has not been granted, as clarified by the student on 30 October 2026. Codex contributions are documented in AI_ASSISTANCE.md.
 
-## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+## Objective
 
-## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+Correctness and readable business rules were the priority. No performance benchmark
+or measured speedup is claimed.
 
-## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
+## Implemented choices
 
-## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
+| Choice | Benefit | Trade-off / validation |
+|---|---|---|
+| Dictionary indexes for reconciliation | Lookup by ID rather than repeated scans | O(n+m) index space, then O(u log u) sorting for u unique IDs; dataset and permutation tests protect results. |
+| One explicit lifecycle transition table | Makes permitted moves reviewable together | Adds constants, but avoids repeating eligibility branches; original state matrix passes unchanged. |
+| Validate money before arithmetic | Prevents type errors, booleans, negative and excessive refunds | Adds boundary checks; invalid-amount and cumulative-refund regressions cover them. |
+| Early duplicate return | Prevents repeated state and ledger updates | History membership remains O(h) for h recorded IDs, consistent with the supplied list shape. |
+| Deep-copy returned state | Keeps history and nested metadata independent of caller-owned data | Copying costs time/memory proportional to snapshot size; aliasing regression verifies the contract. |
 
-## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
+## Considered but not implemented
 
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+A separate set could accelerate history membership, but complicates the existing
+JSON-serializable snapshot and synchronization. An in-memory cache would not make
+idempotency durable. A database unique constraint and transactional ledger would be
+appropriate for a concurrent service, but they are beyond this offline evaluation.
+Skipping malformed reconciliation rows would keep reports running but could hide
+financial discrepancies; explicit ValueError was chosen instead.
+
+## Future work
+
+If production scope were authorized, add durable event IDs and transactional updates,
+structured rejection diagnostics, and a defined migration policy for inconsistent
+snapshots. Benchmark representative histories before changing the data model.
+These are proposals, not implemented or measured improvements.

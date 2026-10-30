@@ -1,0 +1,1119 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="62" skipped="0" tests="212" time="0.155" timestamp="2026-10-30T21:54:42.571163+05:30" hostname="oms-MacBook-Pro.local"><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[PLACED-restaurant_accepted-ACCEPTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[ACCEPTED-restaurant_accepted-ACCEPTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[REJECTED-restaurant_accepted-REJECTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[CANCELLED-restaurant_accepted-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[OUT_FOR_DELIVERY-restaurant_accepted-OUT_FOR_DELIVERY]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[DELIVERED-restaurant_accepted-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[PLACED-restaurant_rejected-REJECTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[ACCEPTED-restaurant_rejected-ACCEPTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[REJECTED-restaurant_rejected-REJECTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[CANCELLED-restaurant_rejected-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[OUT_FOR_DELIVERY-restaurant_rejected-OUT_FOR_DELIVERY]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[DELIVERED-restaurant_rejected-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[PLACED-cancel_requested-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[ACCEPTED-cancel_requested-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[REJECTED-cancel_requested-REJECTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[CANCELLED-cancel_requested-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[OUT_FOR_DELIVERY-cancel_requested-OUT_FOR_DELIVERY]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[DELIVERED-cancel_requested-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[PLACED-dispatch_started-PLACED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[ACCEPTED-dispatch_started-OUT_FOR_DELIVERY]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[OUT_FOR_DELIVERY-dispatch_started-OUT_FOR_DELIVERY]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[DELIVERED-dispatch_started-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[PLACED-order_delivered-PLACED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[ACCEPTED-order_delivered-ACCEPTED]" time="0.001" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[OUT_FOR_DELIVERY-order_delivered-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_order_state_transition_matrix[CANCELLED-order_delivered-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-000]" time="0.000"><failure message="AssertionError: assert ['EV-000', 'EV-000'] == ['EV-000']&#10;  &#10;  Left contains one more item: 'EV-000'&#10;  Use -v to get more diff">event_id = 'EV-000'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-000', 'EV-000'] == ['EV-000']
+E
+E         Left contains one more item: 'EV-000'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-001]" time="0.000"><failure message="AssertionError: assert ['EV-001', 'EV-001'] == ['EV-001']&#10;  &#10;  Left contains one more item: 'EV-001'&#10;  Use -v to get more diff">event_id = 'EV-001'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-001', 'EV-001'] == ['EV-001']
+E
+E         Left contains one more item: 'EV-001'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-002]" time="0.000"><failure message="AssertionError: assert ['EV-002', 'EV-002'] == ['EV-002']&#10;  &#10;  Left contains one more item: 'EV-002'&#10;  Use -v to get more diff">event_id = 'EV-002'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-002', 'EV-002'] == ['EV-002']
+E
+E         Left contains one more item: 'EV-002'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-003]" time="0.000"><failure message="AssertionError: assert ['EV-003', 'EV-003'] == ['EV-003']&#10;  &#10;  Left contains one more item: 'EV-003'&#10;  Use -v to get more diff">event_id = 'EV-003'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-003', 'EV-003'] == ['EV-003']
+E
+E         Left contains one more item: 'EV-003'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-004]" time="0.000"><failure message="AssertionError: assert ['EV-004', 'EV-004'] == ['EV-004']&#10;  &#10;  Left contains one more item: 'EV-004'&#10;  Use -v to get more diff">event_id = 'EV-004'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-004', 'EV-004'] == ['EV-004']
+E
+E         Left contains one more item: 'EV-004'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-005]" time="0.000"><failure message="AssertionError: assert ['EV-005', 'EV-005'] == ['EV-005']&#10;  &#10;  Left contains one more item: 'EV-005'&#10;  Use -v to get more diff">event_id = 'EV-005'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-005', 'EV-005'] == ['EV-005']
+E
+E         Left contains one more item: 'EV-005'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-006]" time="0.000"><failure message="AssertionError: assert ['EV-006', 'EV-006'] == ['EV-006']&#10;  &#10;  Left contains one more item: 'EV-006'&#10;  Use -v to get more diff">event_id = 'EV-006'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-006', 'EV-006'] == ['EV-006']
+E
+E         Left contains one more item: 'EV-006'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-007]" time="0.000"><failure message="AssertionError: assert ['EV-007', 'EV-007'] == ['EV-007']&#10;  &#10;  Left contains one more item: 'EV-007'&#10;  Use -v to get more diff">event_id = 'EV-007'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-007', 'EV-007'] == ['EV-007']
+E
+E         Left contains one more item: 'EV-007'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-008]" time="0.000"><failure message="AssertionError: assert ['EV-008', 'EV-008'] == ['EV-008']&#10;  &#10;  Left contains one more item: 'EV-008'&#10;  Use -v to get more diff">event_id = 'EV-008'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-008', 'EV-008'] == ['EV-008']
+E
+E         Left contains one more item: 'EV-008'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-009]" time="0.000"><failure message="AssertionError: assert ['EV-009', 'EV-009'] == ['EV-009']&#10;  &#10;  Left contains one more item: 'EV-009'&#10;  Use -v to get more diff">event_id = 'EV-009'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-009', 'EV-009'] == ['EV-009']
+E
+E         Left contains one more item: 'EV-009'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-010]" time="0.000"><failure message="AssertionError: assert ['EV-010', 'EV-010'] == ['EV-010']&#10;  &#10;  Left contains one more item: 'EV-010'&#10;  Use -v to get more diff">event_id = 'EV-010'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-010', 'EV-010'] == ['EV-010']
+E
+E         Left contains one more item: 'EV-010'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-011]" time="0.000"><failure message="AssertionError: assert ['EV-011', 'EV-011'] == ['EV-011']&#10;  &#10;  Left contains one more item: 'EV-011'&#10;  Use -v to get more diff">event_id = 'EV-011'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-011', 'EV-011'] == ['EV-011']
+E
+E         Left contains one more item: 'EV-011'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-012]" time="0.000"><failure message="AssertionError: assert ['EV-012', 'EV-012'] == ['EV-012']&#10;  &#10;  Left contains one more item: 'EV-012'&#10;  Use -v to get more diff">event_id = 'EV-012'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-012', 'EV-012'] == ['EV-012']
+E
+E         Left contains one more item: 'EV-012'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-013]" time="0.000"><failure message="AssertionError: assert ['EV-013', 'EV-013'] == ['EV-013']&#10;  &#10;  Left contains one more item: 'EV-013'&#10;  Use -v to get more diff">event_id = 'EV-013'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-013', 'EV-013'] == ['EV-013']
+E
+E         Left contains one more item: 'EV-013'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-014]" time="0.000"><failure message="AssertionError: assert ['EV-014', 'EV-014'] == ['EV-014']&#10;  &#10;  Left contains one more item: 'EV-014'&#10;  Use -v to get more diff">event_id = 'EV-014'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-014', 'EV-014'] == ['EV-014']
+E
+E         Left contains one more item: 'EV-014'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-015]" time="0.000"><failure message="AssertionError: assert ['EV-015', 'EV-015'] == ['EV-015']&#10;  &#10;  Left contains one more item: 'EV-015'&#10;  Use -v to get more diff">event_id = 'EV-015'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-015', 'EV-015'] == ['EV-015']
+E
+E         Left contains one more item: 'EV-015'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-016]" time="0.000"><failure message="AssertionError: assert ['EV-016', 'EV-016'] == ['EV-016']&#10;  &#10;  Left contains one more item: 'EV-016'&#10;  Use -v to get more diff">event_id = 'EV-016'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-016', 'EV-016'] == ['EV-016']
+E
+E         Left contains one more item: 'EV-016'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-017]" time="0.000"><failure message="AssertionError: assert ['EV-017', 'EV-017'] == ['EV-017']&#10;  &#10;  Left contains one more item: 'EV-017'&#10;  Use -v to get more diff">event_id = 'EV-017'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-017', 'EV-017'] == ['EV-017']
+E
+E         Left contains one more item: 'EV-017'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-018]" time="0.000"><failure message="AssertionError: assert ['EV-018', 'EV-018'] == ['EV-018']&#10;  &#10;  Left contains one more item: 'EV-018'&#10;  Use -v to get more diff">event_id = 'EV-018'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-018', 'EV-018'] == ['EV-018']
+E
+E         Left contains one more item: 'EV-018'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_payment_event_replay_idempotent[EV-019]" time="0.000"><failure message="AssertionError: assert ['EV-019', 'EV-019'] == ['EV-019']&#10;  &#10;  Left contains one more item: 'EV-019'&#10;  Use -v to get more diff">event_id = 'EV-019'
+
+    @pytest.mark.parametrize("event_id", [f"EV-{i:03}" for i in range(20)])
+    def test_payment_event_replay_idempotent(event_id):
+        order = new_order("O", 5000)
+        event = ev(event_id, "payment_confirmed")
+        once = apply_order_event(order, event)
+        twice = apply_order_event(once, event)
+        assert twice["payment_status"] == "PAID"
+&gt;       assert twice["processed_event_ids"] == [event_id]
+E       AssertionError: assert ['EV-019', 'EV-019'] == ['EV-019']
+E
+E         Left contains one more item: 'EV-019'
+E         Use -v to get more diff
+
+tests/test_acceptance_matrix.py:51: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[100]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[1000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[1500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[2500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[4999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_valid_partial_and_full_refunds[5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[0]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[-1]" time="0.000"><failure message="assert -1 == 0">amount = -1
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert -1 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[-10]" time="0.000"><failure message="assert -10 == 0">amount = -10
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert -10 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[0.5]" time="0.000"><failure message="assert 0.5 == 0">amount = 0.5
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 0.5 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[True]" time="0.000"><failure message="assert 1 == 0">amount = True
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 1 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[None]" time="0.000"><failure message="TypeError: unsupported operand type(s) for +=: 'int' and 'NoneType'">amount = None
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+&gt;       result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_acceptance_matrix.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+order = {'order_id': 'O', 'total_paise': 5000, 'status': 'CANCELLED', 'payment_status': 'PAID', ...}
+event = {'event_id': 'R', 'type': 'refund_processed', 'amount_paise': None}
+
+    def apply_order_event(order: dict, event: dict) -&gt; dict:
+        """Return an updated copy of order.
+
+        Order keys: order_id, total_paise, status, payment_status, refund_due_paise,
+        refunded_paise, processed_event_ids.
+        """
+        out=deepcopy(order)
+        out.setdefault("payment_status","UNPAID")
+        out.setdefault("refund_due_paise",0)
+        out.setdefault("refunded_paise",0)
+        out.setdefault("processed_event_ids",[])
+        event_id=event.get("event_id")
+        kind=event.get("type")
+
+        # Deliberate starter defects: duplicate and invalid refund events are not
+        # fully protected, and some transitions need tighter validation.
+        if kind=="payment_confirmed":
+            out["payment_status"]="PAID"
+        elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
+            out["status"]="ACCEPTED"
+        elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
+            out["status"]="REJECTED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
+            out["status"]="CANCELLED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
+            out["status"]="OUT_FOR_DELIVERY"
+        elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
+            out["status"]="DELIVERED"
+        elif kind=="refund_processed":
+            # Bug to find: validate eligibility, positive amount and maximum refund.
+&gt;           out["refunded_paise"] += event.get("amount_paise",0)
+E           TypeError: unsupported operand type(s) for +=: 'int' and 'NoneType'
+
+service.py:39: TypeError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[10]" time="0.000"><failure message="TypeError: unsupported operand type(s) for +=: 'int' and 'str'">amount = '10'
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+&gt;       result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_acceptance_matrix.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+order = {'order_id': 'O', 'total_paise': 5000, 'status': 'CANCELLED', 'payment_status': 'PAID', ...}
+event = {'event_id': 'R', 'type': 'refund_processed', 'amount_paise': '10'}
+
+    def apply_order_event(order: dict, event: dict) -&gt; dict:
+        """Return an updated copy of order.
+
+        Order keys: order_id, total_paise, status, payment_status, refund_due_paise,
+        refunded_paise, processed_event_ids.
+        """
+        out=deepcopy(order)
+        out.setdefault("payment_status","UNPAID")
+        out.setdefault("refund_due_paise",0)
+        out.setdefault("refunded_paise",0)
+        out.setdefault("processed_event_ids",[])
+        event_id=event.get("event_id")
+        kind=event.get("type")
+
+        # Deliberate starter defects: duplicate and invalid refund events are not
+        # fully protected, and some transitions need tighter validation.
+        if kind=="payment_confirmed":
+            out["payment_status"]="PAID"
+        elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
+            out["status"]="ACCEPTED"
+        elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
+            out["status"]="REJECTED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
+            out["status"]="CANCELLED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
+            out["status"]="OUT_FOR_DELIVERY"
+        elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
+            out["status"]="DELIVERED"
+        elif kind=="refund_processed":
+            # Bug to find: validate eligibility, positive amount and maximum refund.
+&gt;           out["refunded_paise"] += event.get("amount_paise",0)
+E           TypeError: unsupported operand type(s) for +=: 'int' and 'str'
+
+service.py:39: TypeError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[amount7]" time="0.000"><failure message="TypeError: unsupported operand type(s) for +=: 'int' and 'list'">amount = []
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+&gt;       result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_acceptance_matrix.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+order = {'order_id': 'O', 'total_paise': 5000, 'status': 'CANCELLED', 'payment_status': 'PAID', ...}
+event = {'event_id': 'R', 'type': 'refund_processed', 'amount_paise': []}
+
+    def apply_order_event(order: dict, event: dict) -&gt; dict:
+        """Return an updated copy of order.
+
+        Order keys: order_id, total_paise, status, payment_status, refund_due_paise,
+        refunded_paise, processed_event_ids.
+        """
+        out=deepcopy(order)
+        out.setdefault("payment_status","UNPAID")
+        out.setdefault("refund_due_paise",0)
+        out.setdefault("refunded_paise",0)
+        out.setdefault("processed_event_ids",[])
+        event_id=event.get("event_id")
+        kind=event.get("type")
+
+        # Deliberate starter defects: duplicate and invalid refund events are not
+        # fully protected, and some transitions need tighter validation.
+        if kind=="payment_confirmed":
+            out["payment_status"]="PAID"
+        elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
+            out["status"]="ACCEPTED"
+        elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
+            out["status"]="REJECTED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
+            out["status"]="CANCELLED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
+            out["status"]="OUT_FOR_DELIVERY"
+        elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
+            out["status"]="DELIVERED"
+        elif kind=="refund_processed":
+            # Bug to find: validate eligibility, positive amount and maximum refund.
+&gt;           out["refunded_paise"] += event.get("amount_paise",0)
+E           TypeError: unsupported operand type(s) for +=: 'int' and 'list'
+
+service.py:39: TypeError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[amount8]" time="0.000"><failure message="TypeError: unsupported operand type(s) for +=: 'int' and 'dict'">amount = {}
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+&gt;       result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_acceptance_matrix.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+order = {'order_id': 'O', 'total_paise': 5000, 'status': 'CANCELLED', 'payment_status': 'PAID', ...}
+event = {'event_id': 'R', 'type': 'refund_processed', 'amount_paise': {}}
+
+    def apply_order_event(order: dict, event: dict) -&gt; dict:
+        """Return an updated copy of order.
+
+        Order keys: order_id, total_paise, status, payment_status, refund_due_paise,
+        refunded_paise, processed_event_ids.
+        """
+        out=deepcopy(order)
+        out.setdefault("payment_status","UNPAID")
+        out.setdefault("refund_due_paise",0)
+        out.setdefault("refunded_paise",0)
+        out.setdefault("processed_event_ids",[])
+        event_id=event.get("event_id")
+        kind=event.get("type")
+
+        # Deliberate starter defects: duplicate and invalid refund events are not
+        # fully protected, and some transitions need tighter validation.
+        if kind=="payment_confirmed":
+            out["payment_status"]="PAID"
+        elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
+            out["status"]="ACCEPTED"
+        elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
+            out["status"]="REJECTED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
+            out["status"]="CANCELLED"
+            if out["payment_status"]=="PAID":
+                out["refund_due_paise"]=out.get("total_paise",0)
+        elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
+            out["status"]="OUT_FOR_DELIVERY"
+        elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
+            out["status"]="DELIVERED"
+        elif kind=="refund_processed":
+            # Bug to find: validate eligibility, positive amount and maximum refund.
+&gt;           out["refunded_paise"] += event.get("amount_paise",0)
+E           TypeError: unsupported operand type(s) for +=: 'int' and 'dict'
+
+service.py:39: TypeError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[5001]" time="0.000"><failure message="assert 5001 == 0">amount = 5001
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 5001 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[6000]" time="0.000"><failure message="assert 6000 == 0">amount = 6000
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 6000 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[10000]" time="0.000"><failure message="assert 10000 == 0">amount = 10000
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 10000 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[-5000]" time="0.000"><failure message="assert -5000 == 0">amount = -5000
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert -5000 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[2.2]" time="0.000"><failure message="assert 2.2 == 0">amount = 2.2
+
+    @pytest.mark.parametrize("amount", [0, -1, -10, 0.5, True, None, "10", [], {}, 5001, 6000, 10000, -5000, 2.2, False])
+    def test_invalid_refund_amounts_are_ignored(amount):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=amount))
+&gt;       assert result["refunded_paise"] == 0
+E       assert 2.2 == 0
+
+tests/test_acceptance_matrix.py:68: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_invalid_refund_amounts_are_ignored[False]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[PLACED-UNPAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'PLACED', payment_status = 'UNPAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[PLACED-PAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'PLACED', payment_status = 'PAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[ACCEPTED-PAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'ACCEPTED', payment_status = 'PAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[OUT_FOR_DELIVERY-PAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'OUT_FOR_DELIVERY', payment_status = 'PAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[DELIVERED-PAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'DELIVERED', payment_status = 'PAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[REJECTED-UNPAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'REJECTED', payment_status = 'UNPAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[CANCELLED-UNPAID-0]" time="0.000"><failure message="assert 1000 == 0">status = 'CANCELLED', payment_status = 'UNPAID', due = 0
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[REJECTED-PAID-5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[CANCELLED-PAID-5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[REJECTED-REFUNDED-5000]" time="0.000"><failure message="assert 1000 == 0">status = 'REJECTED', payment_status = 'REFUNDED', due = 5000
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[CANCELLED-REFUNDED-5000]" time="0.000"><failure message="assert 1000 == 0">status = 'CANCELLED', payment_status = 'REFUNDED', due = 5000
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refund_eligibility_matrix[FAILED-PAID-5000]" time="0.000"><failure message="assert 1000 == 0">status = 'FAILED', payment_status = 'PAID', due = 5000
+
+    @pytest.mark.parametrize("status,payment_status,due", [
+        ("PLACED","UNPAID",0), ("PLACED","PAID",0),
+        ("ACCEPTED","PAID",0), ("OUT_FOR_DELIVERY","PAID",0),
+        ("DELIVERED","PAID",0), ("REJECTED","UNPAID",0),
+        ("CANCELLED","UNPAID",0), ("REJECTED","PAID",5000),
+        ("CANCELLED","PAID",5000), ("REJECTED","REFUNDED",5000),
+        ("CANCELLED","REFUNDED",5000), ("FAILED","PAID",5000),
+    ])
+    def test_refund_eligibility_matrix(status, payment_status, due):
+        order = new_order("O", 5000, status)
+        order.update(payment_status=payment_status, refund_due_paise=due)
+        result = apply_order_event(order, ev("R", "refund_processed", amount_paise=1000))
+        if status in ("REJECTED","CANCELLED") and payment_status == "PAID" and due &gt; 0:
+            assert result["refunded_paise"] == 1000
+        else:
+&gt;           assert result["refunded_paise"] == 0
+E           assert 1000 == 0
+
+tests/test_acceptance_matrix.py:87: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[1-1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[100-200]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[1000-1000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[2500-2500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[4999-1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[3000-2000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[4000-2000]" time="0.000"><failure message="assert 6000 == 4000">first = 4000, second = 2000
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 6000 == 4000
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[4900-100]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[2000-3500]" time="0.000"><failure message="assert 5500 == 2000">first = 2000, second = 3500
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5500 == 2000
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[1000-4500]" time="0.000"><failure message="assert 5500 == 1000">first = 1000, second = 4500
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5500 == 1000
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[4500-500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[2500-2501]" time="0.000"><failure message="assert 5001 == 2500">first = 2500, second = 2501
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5001 == 2500
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[1234-4321]" time="0.000"><failure message="assert 5555 == 1234">first = 1234, second = 4321
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5555 == 1234
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[3333-1667]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[1-5000]" time="0.000"><failure message="assert 5001 == 1">first = 1, second = 5000
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5001 == 1
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[5000-1]" time="0.000"><failure message="assert 5001 == 5000">first = 5000, second = 1
+
+    @pytest.mark.parametrize("first,second", [
+        (1,1),(100,200),(1000,1000),(2500,2500),(4999,1),
+        (3000,2000),(4000,2000),(4900,100),(2000,3500),(1000,4500),
+        (4500,500),(2500,2501),(1234,4321),(3333,1667),(1,5000),
+        (5000,1),(999,4001),(4001,999),(250,4750),(2750,2250),
+    ])
+    def test_refunds_cannot_exceed_due(first, second):
+        order = new_order("O", 5000, "CANCELLED")
+        order.update(payment_status="PAID", refund_due_paise=5000)
+        one = apply_order_event(order, ev("R1", "refund_processed", amount_paise=first))
+        two = apply_order_event(one, ev("R2", "refund_processed", amount_paise=second))
+        expected = first + second if first + second &lt;= 5000 else first
+&gt;       assert two["refunded_paise"] == expected
+E       assert 5001 == 5000
+
+tests/test_acceptance_matrix.py:102: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[999-4001]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[4001-999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[250-4750]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refunds_cannot_exceed_due[2750-2250]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[PLACED-PLACED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[PLACED-ACCEPTED]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'PLACED', right = 'ACCEPTED'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[PLACED-CANCELLED]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'PLACED', right = 'CANCELLED'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[ACCEPTED-ACCEPTED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[ACCEPTED-DELIVERED]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'ACCEPTED', right = 'DELIVERED'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[REJECTED-CANCELLED]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'REJECTED', right = 'CANCELLED'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[CANCELLED-CANCELLED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[OUT_FOR_DELIVERY-DELIVERED]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'OUT_FOR_DELIVERY', right = 'DELIVERED'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[DELIVERED-DELIVERED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[FAILED-PENDING]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'FAILED', right = 'PENDING'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[REFUNDED-PAID]" time="0.000"><failure message="AssertionError: assert ['O'] == []&#10;  &#10;  Left contains one more item: 'O'&#10;  Use -v to get more diff">left = 'REFUNDED', right = 'PAID'
+
+    @pytest.mark.parametrize("left,right", [
+        ("PLACED","PLACED"),("PLACED","ACCEPTED"),("PLACED","CANCELLED"),
+        ("ACCEPTED","ACCEPTED"),("ACCEPTED","DELIVERED"),("REJECTED","CANCELLED"),
+        ("CANCELLED","CANCELLED"),("OUT_FOR_DELIVERY","DELIVERED"),("DELIVERED","DELIVERED"),
+        ("FAILED","PENDING"),("REFUNDED","PAID"),("PAID","PAID"),
+    ])
+    def test_reconciliation_status_mismatch_matrix(left, right):
+        report = reconcile_orders(
+            [{"order_id":"O","amount_paise":5000,"status":left}],
+            [{"order_id":"O","amount_paise":5000,"status":right}],
+        )
+        if left == right:
+            assert report["matched"] == ["O"]
+            assert report["status_mismatches"] == []
+        else:
+&gt;           assert report["matched"] == []
+E           AssertionError: assert ['O'] == []
+E
+E             Left contains one more item: 'O'
+E             Use -v to get more diff
+
+tests/test_acceptance_matrix.py:121: AssertionError</failure></testcase><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_status_mismatch_matrix[PAID-PAID]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[1-2]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[2-1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[99-100]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[100-99]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[999-1000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[1000-999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[4999-5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[5000-4999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[10000-10001]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[10001-10000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[45900-45000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[89900-89901]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[129900-0]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[0-129900]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[25-250]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[250-25]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[10-5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[5000-10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[12345-54321]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_amount_mismatch_matrix[700-701]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-00]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-01]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-02]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-03]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-04]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-05]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-06]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-07]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-08]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-09]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-11]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-12]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-13]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_internal_only_order_is_reported[INT-14]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-00]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-01]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-02]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-03]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-04]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-05]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-06]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-07]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-08]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-09]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-11]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-12]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-13]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_provider_only_order_is_reported[PROV-14]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[2]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[3]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[4]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[5]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[6]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[7]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[8]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[9]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_reconciliation_results_are_deterministic[10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[unknown]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[refund]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[None]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[PAYMENT_CONFIRMED]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[chargeback]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[cancel]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[delivery]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_unknown_event_does_not_mutate_order_state[refund_processed_v2]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[1]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[10]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[100]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[1000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[2500]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[5000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[9999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[10000]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_refund_due_uses_full_order_total_on_paid_rejection[99999]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_input_order_is_not_mutated[restaurant_accepted]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_input_order_is_not_mutated[restaurant_rejected]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_input_order_is_not_mutated[cancel_requested]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_input_order_is_not_mutated[dispatch_started]" time="0.000" /><testcase classname="tests.test_acceptance_matrix" name="test_input_order_is_not_mutated[order_delivered]" time="0.000" /><testcase classname="tests.test_contract" name="test_accept_only_when_placed_and_does_not_mutate_input" time="0.000" /><testcase classname="tests.test_contract" name="test_paid_rejected_order_records_full_refund_due" time="0.000" /><testcase classname="tests.test_contract" name="test_cancel_after_dispatch_is_ignored" time="0.000" /><testcase classname="tests.test_contract" name="test_duplicate_event_is_idempotent" time="0.000"><failure message="AssertionError: assert ['e1', 'e1'] == ['e1']&#10;  &#10;  Left contains one more item: 'e1'&#10;  Use -v to get more diff">def test_duplicate_event_is_idempotent():
+        order=new_order("O1",1000)
+        e=event("e1","payment_confirmed")
+        first=apply_order_event(order,e)
+        second=apply_order_event(first,e)
+&gt;       assert second["processed_event_ids"]==["e1"]
+E       AssertionError: assert ['e1', 'e1'] == ['e1']
+E
+E         Left contains one more item: 'e1'
+E         Use -v to get more diff
+
+tests/test_contract.py:35: AssertionError</failure></testcase><testcase classname="tests.test_contract" name="test_refund_requires_eligible_order" time="0.000"><failure message="assert 500 == 0">def test_refund_requires_eligible_order():
+        out=apply_order_event(new_order("O1",1000),event("r1","refund_processed",amount_paise=500))
+&gt;       assert out["refunded_paise"]==0
+E       assert 500 == 0
+
+tests/test_contract.py:40: AssertionError</failure></testcase><testcase classname="tests.test_contract" name="test_refund_must_be_positive" time="0.000"><failure message="assert -10 == 0">def test_refund_must_be_positive():
+        order=new_order("O1",1000,"CANCELLED")
+        order.update(payment_status="PAID",refund_due_paise=1000)
+        for amount in [0,-10]:
+            out=apply_order_event(order,event("r1","refund_processed",amount_paise=amount))
+&gt;           assert out["refunded_paise"]==0
+E           assert -10 == 0
+
+tests/test_contract.py:49: AssertionError</failure></testcase><testcase classname="tests.test_contract" name="test_refund_cannot_exceed_amount_due" time="0.000"><failure message="assert 1200 == 0">def test_refund_cannot_exceed_amount_due():
+        order=new_order("O1",1000,"CANCELLED")
+        order.update(payment_status="PAID",refund_due_paise=1000)
+        out=apply_order_event(order,event("r1","refund_processed",amount_paise=1200))
+&gt;       assert out["refunded_paise"]==0
+E       assert 1200 == 0
+
+tests/test_contract.py:56: AssertionError</failure></testcase><testcase classname="tests.test_contract" name="test_partial_refund_is_not_marked_complete" time="0.000" /><testcase classname="tests.test_contract" name="test_delivery_state_flow" time="0.000" /><testcase classname="tests.test_contract" name="test_reconcile_reports_missing_and_amount_difference" time="0.000" /><testcase classname="tests.test_contract" name="test_reconcile_reports_status_difference" time="0.000"><failure message="AssertionError: assert [] == ['A']&#10;  &#10;  Right contains one more item: 'A'&#10;  Use -v to get more diff">def test_reconcile_reports_status_difference():
+        report=reconcile_orders([{"order_id":"A","amount_paise":100,"status":"PLACED"}],
+            [{"order_id":"A","amount_paise":100,"status":"DELIVERED"}])
+&gt;       assert report["status_mismatches"]==["A"]
+E       AssertionError: assert [] == ['A']
+E
+E         Right contains one more item: 'A'
+E         Use -v to get more diff
+
+tests/test_contract.py:84: AssertionError</failure></testcase><testcase classname="tests.test_contract" name="test_empty_reconciliation" time="0.000" /></testsuite></testsuites>

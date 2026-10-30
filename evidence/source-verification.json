@@ -1,0 +1,45 @@
+{
+  "baseline_commit": "e006d241e3d8ddf6520021a6ab554306a31a200b",
+  "checks": [
+    {
+      "path": "models.py",
+      "unchanged_from_upstream": true,
+      "sha256": "5e6029770d097b6d22b25608a09bee2eb784684425d37419609c6e9dc967d078"
+    },
+    {
+      "path": "fixtures.py",
+      "unchanged_from_upstream": true,
+      "sha256": "ef5c285da2b570262cdbe751bfb426e6d8b7c7eb517d60ae5032e174439ef559"
+    },
+    {
+      "path": "main.py",
+      "unchanged_from_upstream": true,
+      "sha256": "59d6784452904ae96c53fe369279ddf15cfb29428ba80ee7b94d124194d77d18"
+    },
+    {
+      "path": "tests/test_contract.py",
+      "unchanged_from_upstream": true,
+      "sha256": "656e71a2fbfeb74ae050fa457546ccea3b7e8f2044f39c05437639a700f210a1"
+    },
+    {
+      "path": "tests/test_acceptance_matrix.py",
+      "unchanged_from_upstream": true,
+      "sha256": "d4fd2d0bca24862b00d3800403bf9b08a8866b540c6e2ab51a4e94840f4d8b8a"
+    },
+    {
+      "path": "data/records.json",
+      "unchanged_from_upstream": true,
+      "sha256": "c710249cc2d7ca95afeb0bdda7204df2a9099b18d1abb6f961ae78c89336c966"
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "unchanged_from_upstream": true,
+      "sha256": "6d6c2961376f8a29a2927e311c11b10a9ae1f057aa5477a2ea9c9abbaa03950b"
+    },
+    {
+      "path": ".github/workflows/build-student-pdf.yml",
+      "unchanged_from_upstream": true,
+      "sha256": "4e6c1d50e46eb63823b86874a306afb080179813c69852e1134b49ab2e889d1c"
+    }
+  ]
+}

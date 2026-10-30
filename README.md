@@ -1,3 +1,11 @@
+> **AI-assisted reference:** These changes and engineering notes were prepared with
+> Codex. The student clarified on 30 October 2026 that evaluator approval for AI
+> assistance has not been granted. See [AI_ASSISTANCE.md](AI_ASSISTANCE.md).
+>
+> Start with [STEP_BY_STEP.md](STEP_BY_STEP.md) for the full beginner walkthrough,
+> or [GUIDE.md](GUIDE.md) for requirements, state flow, and implementation decisions.
+> Desktop verification: **308 passed** (212 original cases + 96 regressions).
+
 # OrderOps — Order Failure, Cancellation & Refund Reconciliation
 
 > **Central student guide:** [Read the complete Open-Source Evaluation Guide](https://github.com/sunitazenith07-lang/LabLedger-Open-Source-Evaluation/blob/main/OPEN_SOURCE_EVALUATION_STUDENT_GUIDE.md) — includes all four tracks, required reading, submission instructions, and the three compulsory documentation files.
