@@ -14,16 +14,31 @@ def _valid_id(value) -> bool:
     return isinstance(value,int) and not isinstance(value,bool)
 
 
+def _is_paise(value) -> bool:
+    """Money is a whole number of paise. bool is a subclass of int, so True
+    would otherwise count as 1 paise."""
+    return isinstance(value,int) and not isinstance(value,bool)
+
+
 def _refund_allowed(order: dict, amount) -> bool:
     """A refund needs a paid cancelled/rejected order and a positive integer
     amount that fits in the outstanding refund due."""
-    # bool is a subclass of int, so True would otherwise count as 1 paise.
-    if not isinstance(amount,int) or isinstance(amount,bool) or amount<=0:
+    if not _is_paise(amount) or amount<=0:
         return False
     if order.get("status") not in REFUNDABLE_STATUSES or order["payment_status"]!="PAID":
         return False
-    outstanding=order["refund_due_paise"]-order["refunded_paise"]
-    return amount<=outstanding
+    due,refunded=order["refund_due_paise"],order["refunded_paise"]
+    # A null or text amount on the order means the refund cannot be checked.
+    if not (_is_paise(due) and _is_paise(refunded)):
+        return False
+    return amount<=due-refunded
+
+
+def _owe_full_total(order: dict) -> None:
+    """A paid order that will not be delivered owes its full total back. A null
+    or text total is not copied, so no refund can be checked against it."""
+    if _is_paise(order.get("total_paise")):
+        order["refund_due_paise"]=order["total_paise"]
 
 
 def apply_order_event(order: dict, event: dict) -> dict:
@@ -50,17 +65,17 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["payment_status"]="PAID"
         # Payment that lands after a cancel/reject is owed back in full.
         if out.get("status") in REFUNDABLE_STATUSES:
-            out["refund_due_paise"]=out.get("total_paise",0)
+            _owe_full_total(out)
     elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
         out["status"]="ACCEPTED"
     elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
         out["status"]="REJECTED"
         if out["payment_status"]=="PAID":
-            out["refund_due_paise"]=out.get("total_paise",0)
+            _owe_full_total(out)
     elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
         out["status"]="CANCELLED"
         if out["payment_status"]=="PAID":
-            out["refund_due_paise"]=out.get("total_paise",0)
+            _owe_full_total(out)
     elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
@@ -117,7 +132,7 @@ def awaiting_refund_csv(orders) -> str:
     writer.writerow(AWAITING_REFUND_COLUMNS)
     for o in sorted(orders,key=lambda o:str(o.get("order_id"))):
         due,paid=o.get("refund_due_paise",0),o.get("refunded_paise",0)
-        if due>paid:
+        if _is_paise(due) and _is_paise(paid) and due>paid:
             writer.writerow([o.get("order_id"),o.get("status"),due,paid,due-paid])
     return buf.getvalue()
 

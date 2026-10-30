@@ -323,3 +323,33 @@ def test_apply_events_returns_copies_not_the_callers_orders():
     assert result["A"] is not orders[0]
     result["A"]["status"]="DELIVERED"
     assert orders[0]["status"]=="PLACED"
+
+
+# Follow-up 5: a null or text amount stored on the order crashed the refund
+# check and the CSV report with TypeError.
+
+@pytest.mark.parametrize("field,value",[("refund_due_paise",None),("refunded_paise",None),
+    ("refund_due_paise","1000"),("refunded_paise",1.5)])
+def test_refund_on_order_with_broken_amounts_is_ignored(field,value):
+    order=refundable_order()
+    order[field]=value
+    out=apply_order_event(order,event("r1","refund_processed",amount_paise=100))
+    assert out[field]==value
+    assert out["payment_status"]=="PAID"
+
+
+def test_null_total_does_not_become_the_refund_due():
+    order=new_order("O1",None)
+    order["payment_status"]="PAID"
+    out=apply_order_event(order,event("x1","restaurant_rejected"))
+    assert out["status"]=="REJECTED"
+    assert out["refund_due_paise"]==0
+    out=apply_order_event(out,event("r1","refund_processed",amount_paise=100))
+    assert out["refunded_paise"]==0
+
+
+def test_awaiting_refund_csv_skips_rows_with_broken_amounts():
+    broken=refundable_order(1000,"A")
+    broken["refund_due_paise"]=None
+    lines=awaiting_refund_csv([broken,refundable_order(300,"B")]).splitlines()
+    assert lines[1:]==["B,CANCELLED,300,0,300"]
