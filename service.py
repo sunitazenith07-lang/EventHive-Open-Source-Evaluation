@@ -65,6 +65,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
         if payment_status == "UNPAID":
             out["payment_status"] = "PAID"
 
+            if status in ("REJECTED", "CANCELLED"):
+                total = out.get("total_paise")
+                if _is_valid_paise(total):
+                    out["refund_due_paise"] = total
+
     elif event_type == "restaurant_accepted":
 
         if status == "PLACED":

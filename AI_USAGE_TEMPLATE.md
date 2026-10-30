@@ -13,7 +13,8 @@
 
 ## Human verification
 All AI-assisted changes were reviewed and tested by the contributor.
-Final test results will be recorded only after running the tests locally.
+All changes were independently reviewed, executed, and verified by the contributor.
+Local verification confirmed that all 221 automated tests passed and the offline reconciliation demo matched expected outputs.
 
 ## Responsibility
 I understand the submitted code and take responsibility for reviewing,

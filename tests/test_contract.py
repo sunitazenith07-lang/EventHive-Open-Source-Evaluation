@@ -174,3 +174,58 @@ def test_non_dictionary_event_is_ignored():
         assert result["payment_status"] == "UNPAID"
         assert result["processed_event_ids"] == []
 
+def test_rejection_then_payment_confirmed_then_refund():
+    order = new_order("O-REJ", 3000)
+    rejected = apply_order_event(order, event("e1", "restaurant_rejected"))
+    assert rejected["status"] == "REJECTED"
+    assert rejected["payment_status"] == "UNPAID"
+    assert rejected["refund_due_paise"] == 0
+
+    paid = apply_order_event(rejected, event("e2", "payment_confirmed"))
+    assert paid["status"] == "REJECTED"
+    assert paid["payment_status"] == "PAID"
+    assert paid["refund_due_paise"] == 3000
+
+    # Duplicate payment confirmation should be idempotent
+    dup_paid = apply_order_event(paid, event("e2", "payment_confirmed"))
+    assert dup_paid["refund_due_paise"] == 3000
+    assert dup_paid["processed_event_ids"] == ["e1", "e2"]
+
+    # Partial refund
+    partial = apply_order_event(paid, event("e3", "refund_processed", amount_paise=1000))
+    assert partial["refunded_paise"] == 1000
+    assert partial["payment_status"] == "PAID"
+
+    # Remaining refund completes
+    completed = apply_order_event(partial, event("e4", "refund_processed", amount_paise=2000))
+    assert completed["refunded_paise"] == 3000
+    assert completed["payment_status"] == "REFUNDED"
+
+    # Duplicate refund notification is ignored
+    dup_refund = apply_order_event(completed, event("e4", "refund_processed", amount_paise=2000))
+    assert dup_refund["refunded_paise"] == 3000
+    assert dup_refund["processed_event_ids"] == ["e1", "e2", "e3", "e4"]
+
+
+def test_cancellation_then_payment_confirmed_then_refund():
+    order = new_order("O-CNC", 4500)
+    cancelled = apply_order_event(order, event("e1", "cancel_requested"))
+    assert cancelled["status"] == "CANCELLED"
+    assert cancelled["payment_status"] == "UNPAID"
+    assert cancelled["refund_due_paise"] == 0
+
+    paid = apply_order_event(cancelled, event("e2", "payment_confirmed"))
+    assert paid["status"] == "CANCELLED"
+    assert paid["payment_status"] == "PAID"
+    assert paid["refund_due_paise"] == 4500
+
+    # Invalid refund amount (> outstanding) is ignored
+    over_refund = apply_order_event(paid, event("e3", "refund_processed", amount_paise=5000))
+    assert over_refund["refunded_paise"] == 0
+    assert over_refund["payment_status"] == "PAID"
+
+    # Full refund
+    full = apply_order_event(paid, event("e4", "refund_processed", amount_paise=4500))
+    assert full["refunded_paise"] == 4500
+    assert full["payment_status"] == "REFUNDED"
+

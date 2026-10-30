@@ -1,10 +1,10 @@
 # OrderOps Testing Strategy & Evidence Log
 
-> **Author:** Senior Software Architect / Backend QA Engineer
+> **Author:** Shubham Kumar
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Mandatory Testing Documentation
 > **Verification Command:** `python -m pytest -q`
-> **Actual Summary:** `219 passed in 0.29s`
+> **Actual Summary:** `221 passed in 0.12s`
 
 ---
 
@@ -26,7 +26,7 @@ This file replaces the starter prompt template `TESTING.md` (24 lines of instruc
 - **Actual Terminal Output:**
   ```text
   ................................................................................................................................................................................................................... [100%]
-  219 passed in 0.29s
+  221 passed in 0.12s
   ```
 
 ---
@@ -37,7 +37,7 @@ The automated test suite is organised into two distinct test modules under `test
 
 | Test Module | Test Functions | Total Test Cases | Focus Area |
 |---|---|---|---|
-| `tests/test_contract.py` | 19 unique functions | 19 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
+| `tests/test_contract.py` | 21 unique functions | 21 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
 | `tests/test_acceptance_matrix.py` | 14 unique functions | 200 | Parametrized combinatorial matrix testing: state transitions (26), event idempotency (20), valid refund ranges (10), invalid refund types (15), refund eligibility combinations (12), cumulative refund arithmetic (20), reconciliation status/amount variations (32), determinism (10), and rejection total scales (10). |
 
 ---

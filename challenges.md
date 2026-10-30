@@ -1,6 +1,6 @@
 # OrderOps Engineering Challenges & Debugging Log
 
-> **Author:** Senior Software Architect / Backend Engineer
+> **Author:** Shubham Kumar
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Compulsory Problem-Solving Documentation (5 Marks — COMPULSORY)
 > **Document Purpose:** Honest, detailed engineering log documenting concrete technical obstacles, reproducible failure evidence, false assumptions disproven, and technical resolutions implemented.
@@ -173,7 +173,45 @@ if amount_matches and status_matches:
 
 ---
 
-## 5. Summary of Challenges Classification
+## 5. Challenge 5: Out-of-Order Payment Confirmation Following Cancellation or Rejection
+
+### Initial Symptoms
+When an order was cancelled or rejected prior to payment confirmation (e.g. customer cancels an unpaid placed order, or kitchen rejects an unpaid placed order), `apply_order_event` transitioned the status to `CANCELLED` or `REJECTED`, leaving `payment_status = "UNPAID"` and `refund_due_paise = 0`. If a delayed webhook later delivered `payment_confirmed`, `payment_status` transitioned to `"PAID"`, but `refund_due_paise` remained 0. As a consequence, subsequent valid `refund_processed` events were rejected because `refund_due_paise` was zero.
+
+### Root Cause
+In `service.py`, `refund_due_paise` was only populated inside `restaurant_rejected` and `cancel_requested` branches if `payment_status == "PAID"`. The `payment_confirmed` branch updated `payment_status = "PAID"` without checking if the order was already in a terminal cancelled/rejected state requiring an immediate refund liability to be recorded.
+
+### Investigation Steps
+1. Traced asynchronous lifecycle where payment capture and kitchen response execute concurrently.
+2. Verified that if money is captured on a cancelled or rejected order, that full amount represents an unfulfillable transaction that must immediately become refundable.
+3. Observed that without setting `refund_due_paise = total_paise`, customer money was locked and unrefundable.
+
+### Final Technical Resolution
+In `service.py`, enhanced the `payment_confirmed` handler so that if the order is already in `REJECTED` or `CANCELLED` state, `refund_due_paise` is initialized to `total_paise`:
+```python
+if event_type == "payment_confirmed":
+    if payment_status == "UNPAID":
+        out["payment_status"] = "PAID"
+
+        if status in ("REJECTED", "CANCELLED"):
+            total = out.get("total_paise")
+            if _is_valid_paise(total):
+                out["refund_due_paise"] = total
+```
+
+### Files and Functions Involved
+- `service.py`: `apply_order_event()`
+- `tests/test_contract.py`: `test_rejection_then_payment_confirmed_then_refund` and `test_cancellation_then_payment_confirmed_then_refund`
+
+### Regression Test & Verification Result
+- Verified by:
+  - `test_rejection_then_payment_confirmed_then_refund`
+  - `test_cancellation_then_payment_confirmed_then_refund`
+- Result: **PASSED**. Out-of-order payments correctly establish refund liability and allow full or partial refunds.
+
+---
+
+## 6. Summary of Challenges Classification
 
 ### Resolved Challenges
 1. Python boolean subclass flaw in monetary integer validation.

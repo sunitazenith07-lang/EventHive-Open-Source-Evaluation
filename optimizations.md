@@ -1,6 +1,6 @@
 # OrderOps Engineering Optimizations & Complexity Analysis
 
-> **Author:** Senior Software Architect / Backend Engineer
+> **Author:** Shubham Kumar
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Compulsory Problem-Solving Documentation (5 Marks)
 > **Document Purpose:** Rigorous analysis of computational complexity, memory management, algorithmic efficiency, and engineering trade-offs in `service.py`.

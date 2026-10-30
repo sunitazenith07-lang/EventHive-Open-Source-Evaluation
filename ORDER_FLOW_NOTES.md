@@ -1,6 +1,6 @@
 # OrderOps Order Flow Notes & Lifecycle Traces
 
-> **Author:** Senior Software Architect / Backend Engineer
+> **Author:** Shubham Kumar
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Mandatory Submission (`ORDER_FLOW_NOTES.md`)
 > **Document Purpose:** Concrete, step-by-step order lifecycle traces, edge-case analysis, and architectural assumptions.
@@ -67,13 +67,12 @@ The table below traces a real-world asynchronous food-ordering journey for Order
 - **Precondition Evaluation:**
   `if payment_status == "UNPAID": out["payment_status"] = "PAID"`.
 - **Expected Behaviour:**
-  Payment status advances to `PAID`. Order remains `REJECTED`.
-- **Financial Implication & Current Implementation Behaviour:**
-  Because rejection occurred while `payment_status == "UNPAID"`, `refund_due_paise` was not set during Step 1. When `payment_confirmed` arrives later, the current implementation strictly mutates `out["payment_status"] = "PAID"` without retroactive backfilling of `refund_due_paise`. Consequently, `refund_due_paise` remains zero, and the current implementation does not automatically resolve this asynchronous race condition.
-- **FUTURE PRODUCTION RECOMMENDATION (Not Implemented):**
-  In a production distributed architecture, handling this race condition would require:
-  1. *Explicit Event Transition Check:* In `payment_confirmed`, add an explicit check: `if status in ("REJECTED", "CANCELLED") and _is_valid_paise(total): out["refund_due_paise"] = total`.
-  2. *Event Sourcing / Replay Pipeline:* Alternatively, an out-of-order event orchestrator can buffer out-of-order events or re-evaluate the event stream in causal order to re-derive the correct financial state upon late settlement arrival.
+  Payment status advances to `PAID`. Order remains `REJECTED`. Crucially, because funds have now been captured for an unfulfillable rejected order, `refund_due_paise` must immediately be initialized to `total_paise` (2500), enabling refund processing.
+- **Implementation Behaviour & Resolution:**
+  In `service.py`, `apply_order_event()` inspects whether the current status is `REJECTED` or `CANCELLED` upon receiving `payment_confirmed`. If so, it verifies that `total_paise` is valid and sets `refund_due_paise = total_paise`.
+- **Actual Observed Result:**
+  `result["status"] == "REJECTED"`, `result["payment_status"] == "PAID"`, `result["refund_due_paise"] == 2500`. Subsequent `refund_processed` events successfully issue partial or full refunds.
+- **Verifying Test:** `tests/test_contract.py::test_rejection_then_payment_confirmed_then_refund`.
 
 ---
 

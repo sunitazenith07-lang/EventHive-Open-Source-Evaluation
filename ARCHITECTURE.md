@@ -1,6 +1,7 @@
 # OrderOps System Architecture & Technical Specification
 
 > **System:** OrderOps (Order Failure, Cancellation & Refund Reconciliation)
+> **Author:** Shubham Kumar
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Language & Platform:** Python 3.10+ (Standard Library only, `copy.deepcopy`)
 > **Scope:** Core service lifecycle, idempotency engine, refund boundaries, and payment reconciliation.
