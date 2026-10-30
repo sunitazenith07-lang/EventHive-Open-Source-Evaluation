@@ -13,7 +13,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)
     out.setdefault("processed_event_ids",[])
-    event_id=event.get("event_id")
+    event_id = event.get("event_id")
+    
+
+    if event_id in out["processed_event_ids"]:
+        return out
     kind=event.get("type")
 
     # Deliberate starter defects: duplicate and invalid refund events are not
@@ -36,7 +40,7 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="DELIVERED"
     elif kind == "refund_processed":
         amount = event.get("amount_paise", 0)
-
+        # Bug to find: validate eligibility, positive amount and maximum refund.
     if (out["payment_status"] == "PAID"
         and out["refund_due_paise"] > 0
         and isinstance(amount, int)
