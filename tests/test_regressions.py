@@ -1,6 +1,6 @@
 """Regression tests for defects fixed in service.py."""
 from models import new_order
-from service import apply_order_event
+from service import apply_order_event, reconcile_orders
 
 
 def event(event_id, kind, **extra):
@@ -77,3 +77,19 @@ def test_full_paid_rejection_lifecycle():
     assert order["refund_due_paise"]==2500
     assert order["refunded_paise"]==2500
     assert order["payment_status"]=="REFUNDED"
+
+
+# Bug 3: status mismatches in reconciliation
+
+def test_amount_and_status_mismatch_reported_in_both_lists():
+    report=reconcile_orders([{"order_id":"A","amount_paise":100,"status":"PLACED"}],
+        [{"order_id":"A","amount_paise":90,"status":"CANCELLED"}])
+    assert report["amount_mismatches"]==["A"]
+    assert report["status_mismatches"]==["A"]
+    assert report["matched"]==[]
+
+
+def test_status_mismatches_are_sorted():
+    internal=[{"order_id":oid,"amount_paise":1,"status":"PLACED"} for oid in ["C","A","B"]]
+    provider=[{"order_id":oid,"amount_paise":1,"status":"DELIVERED"} for oid in ["B","C","A"]]
+    assert reconcile_orders(internal,provider)["status_mismatches"]==["A","B","C"]

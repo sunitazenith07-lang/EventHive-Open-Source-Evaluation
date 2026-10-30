@@ -74,9 +74,13 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
             report["missing_from_internal"].append(key)
         else:
             a,b=left[key],right[key]
-            if a.get("amount_paise") != b.get("amount_paise"):
+            amount_ok=a.get("amount_paise")==b.get("amount_paise")
+            status_ok=a.get("status")==b.get("status")
+            # An order can differ in both ways; each is reported separately.
+            if not amount_ok:
                 report["amount_mismatches"].append(key)
-            # Deliberate starter defect: mismatched statuses may be called matched.
-            else:
+            if not status_ok:
+                report["status_mismatches"].append(key)
+            if amount_ok and status_ok:
                 report["matched"].append(key)
     return report
