@@ -1,4 +1,5 @@
 """Regression tests for defects fixed in service.py."""
+import pytest
 from models import new_order
 from service import apply_order_event, reconcile_orders
 
@@ -124,3 +125,14 @@ def test_payment_after_cancellation_creates_refund_due():
     out=apply_order_event(order,event("p1","payment_confirmed"))
     assert out["payment_status"]=="PAID"
     assert out["refund_due_paise"]==1000
+
+
+# QoL 1: malformed events
+
+
+@pytest.mark.parametrize("bad",[None,"payment_confirmed",[],42])
+def test_non_dict_event_is_ignored(bad):
+    order=new_order("O1",1000)
+    out=apply_order_event(order,bad)
+    assert out["payment_status"]=="UNPAID"
+    assert out["processed_event_ids"]==[]

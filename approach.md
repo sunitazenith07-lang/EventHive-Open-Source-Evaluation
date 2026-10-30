@@ -136,3 +136,11 @@ KNOWN LIMITATIONS
 -If one side has the same order ID twice, only the last one is kept.
 -Events that arrive in the wrong order are ignored, not saved for later.
 -The duplicate check gets slower as more events are processed.
+## 6. Quality-of-life additions
+-After all tests passed, I looked for inputs the tests don't cover and small features that made sense. Each one is a separate commit.
+
+1.Malformed events crashed the code
+    -apply_order_event(order, None) or a string/list event crashed with AttributeError, because the code calls event.get().
+    -Requirement 7 says bad input must not corrupt state, and a crash in a batch would stop every event after it.
+    -Now a non-dict event returns the order unchanged and isn't recorded.
+    -Test: test_non_dict_event_is_ignored (None, a string, a list, a number).

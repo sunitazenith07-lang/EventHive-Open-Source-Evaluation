@@ -27,6 +27,8 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)
     out.setdefault("processed_event_ids",[])
+    if not isinstance(event,dict):
+        return out
     event_id=event.get("event_id")
     kind=event.get("type")
 
