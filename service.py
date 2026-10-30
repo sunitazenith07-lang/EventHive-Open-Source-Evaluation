@@ -90,8 +90,9 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     }
 
     def _get_amount(record: dict):
-        if "amount_paise" in record:
-            return record.get("amount_paise")
+        amt = record.get("amount_paise")
+        if amt is not None:
+            return amt
         return record.get("total_paise")
 
     for key in sorted(set(left) | set(right), key=lambda x: str(x)):
