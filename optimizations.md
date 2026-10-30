@@ -1,24 +1,24 @@
-# optimizations.md - Required submission
+# Optimizations and trade-offs
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
+AI-assisted engineering record by Codex. No performance speedup was measured or claimed.
 
-## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+## Objective and implemented changes
+Correctness and clarity were the goals: replay protection, bounded refund arithmetic and independent
+reconciliation categories. A transition map makes allowed source/target states explicit. Early validation
+prevents malformed data from reaching monetary updates. Reconciliation retains dictionary indexing
+and sorted output, with O(n + m + k log k) time for n internal rows, m provider rows and k distinct IDs.
+Final correctness evidence: 235 passing tests, including 23 added regression cases.
 
-## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+## Options considered
+- A set for processed IDs could improve repeated membership checks, but serialized history is a list.
+  Keeping it avoids schema changes and preserves readable chronological history. Membership is O(h).
+- In-place mutation would avoid deepcopy cost, but would violate the API's immutability guarantee.
+  Retained deep copies and added sequence tests checking that inputs remain unchanged.
+- Sorting input records is unnecessary: index by ID, then sort unique output keys once.
+- Automatically clipping excess refunds would conceal invalid provider data; reject the amount instead.
 
-## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
-
-## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
-
-## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
-
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+## Future improvements
+For a persistent concurrent service, add transactional uniqueness on (order_id, event_id) and atomic
+refund balance updates. Benchmark long histories before replacing the current list representation.
+Add a separate validation report if callers need detailed diagnostics for skipped malformed rows.
+No stretch item or speculative performance infrastructure was implemented.

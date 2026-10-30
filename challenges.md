@@ -1,23 +1,30 @@
-# challenges.md - COMPULSORY submission
+# Challenges and evidence
 
-This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
+This record describes Codex's AI-assisted work, not independent student experience.
 
-## 1. Challenge or confusing behaviour
-What specific state transition, test failure, data condition, or code path was difficult to understand?
+## Environment
+The default Windows python command was an inaccessible application alias. The bundled Python
+runtime worked but lacked pytest. Created an isolated virtual environment and installed the
+repository development requirements successfully. Baseline then ran: 62 failed, 150 passed.
 
-## 2. Evidence
-Summarize the relevant assertion, error message, output, or minimal reproducible example. Do not include secrets or real customer data.
+## Schema mismatch
+The baseline demo called ORD-101 an amount mismatch although both sides represent 45900 paise.
+Source inspection showed internal fixtures use total_paise and provider summaries use amount_paise.
+Added fallback normalization without treating missing values as matching. The demo now matches ORD-101;
+test_reconciliation_reports_both_differences_and_normalizes_total protects this behavior.
 
-## 3. What I tried
-List the debugging steps or experiments you actually performed and what each one showed.
+## Replay versus late notification
+A replay guard alone does not protect against a new payment event ID after a full refund.
+The payment handler previously unconditionally assigned PAID. The new handler preserves REFUNDED.
+test_refund_sequence_and_replay verifies partial refund, exact replay, completion and late payment
+in one sequence, including input immutability at each step.
 
-## 4. Resolution
-What was the root cause? What did you change, and why did that address the cause rather than hide the symptom?
+## Duplicate reconciliation ambiguity
+Silently choosing the last conflicting row makes output input-order dependent. Conflicting duplicate
+IDs now raise ValueError in either input ordering; identical duplicates collapse.
+This is covered by test_conflicting_duplicate_records_rejected_in_either_order.
 
-## 5. Proof and regression prevention
-Which test(s) demonstrate the fix? What related case could still break?
-
-## 6. Unresolved challenge or next step
-State any remaining limitation and how you would investigate it next.
-
-If you did not encounter a major blocker, say that clearly and describe the hardest edge case you deliberately tested and what it taught you. Do not manufacture a story; describe observable engineering work.
+## Remaining limitations
+No major implementation blocker remains locally. The user connected GitHub and created a fork after local verification.
+CI had not been observed when these notes were prepared. Persistence/concurrent processing would
+require transactional event tracking; this offline pure-function exercise does not provide it.
