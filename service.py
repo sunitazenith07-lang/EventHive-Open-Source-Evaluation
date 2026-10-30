@@ -15,11 +15,15 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("processed_event_ids",[])
     event_id=event.get("event_id")
     kind=event.get("type")
-
+    if event_id in out["processed_event_ids"]:
+        return out
+    status = out.get("status", "PLACED")
+    payment_status = out.get("payment_status", "UNPAID")    
     # Deliberate starter defects: duplicate and invalid refund events are not
     # fully protected, and some transitions need tighter validation.
     if kind=="payment_confirmed":
-        out["payment_status"]="PAID"
+        if payment_status == "UNPAID":
+            out["payment_status"]="PAID"
     elif kind=="restaurant_accepted" and out.get("status")=="PLACED":
         out["status"]="ACCEPTED"
     elif kind=="restaurant_rejected" and out.get("status")=="PLACED":
@@ -27,21 +31,32 @@ def apply_order_event(order: dict, event: dict) -> dict:
         if out["payment_status"]=="PAID":
             out["refund_due_paise"]=out.get("total_paise",0)
     elif kind=="cancel_requested" and out.get("status") in ("PLACED","ACCEPTED"):
-        out["status"]="CANCELLED"
+        out["status"]="CANCELLED" 
         if out["payment_status"]=="PAID":
             out["refund_due_paise"]=out.get("total_paise",0)
     elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
         out["status"]="DELIVERED"
+        
     elif kind=="refund_processed":
         # Bug to find: validate eligibility, positive amount and maximum refund.
-        out["refunded_paise"] += event.get("amount_paise",0)
-        if out["refunded_paise"] >= out.get("refund_due_paise",0):
+        amount_paise = event.get("amount_paise", 0)
+        outstanding = out["refund_due_paise"] - out["refunded_paise"]
+        if (
+            out.get("status") in ("CANCELLED", "REJECTED")
+            and out["payment_status"] == "PAID"
+            and isinstance(amount_paise, int)
+            and not isinstance(amount_paise, bool)
+            and 0 < amount_paise <= outstanding
+        ):
+            out["refunded_paise"] += amount_paise
+        if out["refund_due_paise"] > 0 and out["refunded_paise"] >= out["refund_due_paise"]:
             out["payment_status"]="REFUNDED"
-
-    out["processed_event_ids"].append(event_id)
+    if event_id:
+        out["processed_event_ids"].append(event_id)
     return out
+        
 
 
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
@@ -50,7 +65,8 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     right={r.get("order_id"):r for r in provider}
     report={"matched":[],"missing_from_provider":[],"missing_from_internal":[],
             "amount_mismatches":[],"status_mismatches":[]}
-    for key in sorted(set(left)|set(right),key=lambda x:str(x)):
+    all_keys = sorted(set(left) | set(right), key=lambda x: str(x))
+    for key in all_keys:
         if key not in right:
             report["missing_from_provider"].append(key)
         elif key not in left:
@@ -61,5 +77,23 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
                 report["amount_mismatches"].append(key)
             # Deliberate starter defect: mismatched statuses may be called matched.
             else:
-                report["matched"].append(key)
+                a, b = left[key], right[key]
+            
+            
+                amt_a = a.get("amount_paise") if "amount_paise" in a else a.get("total_paise")
+                amt_b = b.get("amount_paise") if "amount_paise" in b else b.get("total_paise")
+            
+                status_a = a.get("status")
+                status_b = b.get("status")
+
+                has_amount_mismatch = amt_a is not None and amt_b is not None and amt_a != amt_b
+                has_status_mismatch = status_a is not None and status_b is not None and status_a != status_b
+
+                if has_amount_mismatch:
+                    report["amount_mismatches"].append(key)
+                if has_status_mismatch:
+                    report["status_mismatches"].append(key)
+
+                if not has_amount_mismatch and not has_status_mismatch:
+                    report["matched"].append(key)
     return report
