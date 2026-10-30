@@ -6,6 +6,14 @@ from copy import deepcopy
 REFUNDABLE_STATUSES=("CANCELLED","REJECTED")
 
 
+def _valid_id(value) -> bool:
+    """IDs are non-blank strings or ints. Checked by type, not truthiness:
+    0 is falsy but valid, and unhashable values such as lists cannot be dict keys."""
+    if isinstance(value,str):
+        return value.strip()!=""
+    return isinstance(value,int) and not isinstance(value,bool)
+
+
 def _refund_allowed(order: dict, amount) -> bool:
     """A refund needs a paid cancelled/rejected order and a positive integer
     amount that fits in the outstanding refund due."""
@@ -34,8 +42,8 @@ def apply_order_event(order: dict, event: dict) -> dict:
     event_id=event.get("event_id")
     kind=event.get("type")
 
-    # Without an event_id a replay cannot be detected, so the event is ignored.
-    if not event_id or event_id in out["processed_event_ids"]:
+    # Without a usable event_id a replay cannot be detected, so the event is ignored.
+    if not _valid_id(event_id) or event_id in out["processed_event_ids"]:
         return out
 
     if kind=="payment_confirmed" and out["payment_status"]=="UNPAID":
@@ -76,7 +84,7 @@ def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[int
     unrouted=[]
     for i,e in enumerate(events):
         oid=e.get("order_id") if isinstance(e,dict) else None
-        if oid not in by_id:
+        if not (_valid_id(oid) and oid in by_id):
             unrouted.append(i)
             continue
         by_id[oid]=apply_order_event(by_id[oid],e)
@@ -108,7 +116,7 @@ def _index_rows(rows: list) -> tuple[dict, list[int], set]:
     and the IDs that appear more than once."""
     keyed,invalid,dupes={},[],set()
     for i,r in enumerate(rows):
-        if not (isinstance(r,dict) and r.get("order_id")):
+        if not (isinstance(r,dict) and _valid_id(r.get("order_id"))):
             invalid.append(i)
         elif r["order_id"] in keyed:
             dupes.add(r["order_id"])

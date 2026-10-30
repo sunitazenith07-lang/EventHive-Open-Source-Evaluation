@@ -228,3 +228,41 @@ def test_input_order_and_nested_event_list_are_not_mutated(kind):
     before=deepcopy(order)
     apply_order_event(order,event("e1",kind,amount_paise=100))
     assert order==before
+
+
+# Follow-up 2: IDs were checked by truthiness, so 0 counted as missing, and
+# unhashable IDs such as lists crashed the dict lookups.
+
+@pytest.mark.parametrize("event_id",[0,7,"e1"])
+def test_valid_event_ids_including_zero_are_applied(event_id):
+    out=apply_order_event(new_order("O1",1000),event(event_id,"payment_confirmed"))
+    assert out["payment_status"]=="PAID"
+    assert out["processed_event_ids"]==[event_id]
+
+
+@pytest.mark.parametrize("event_id",[None,""," ",True,False,1.5,[],["e1"],{}])
+def test_unusable_event_ids_are_ignored(event_id):
+    out=apply_order_event(new_order("O1",1000),event(event_id,"payment_confirmed"))
+    assert out["payment_status"]=="UNPAID"
+    assert out["processed_event_ids"]==[]
+
+
+def test_order_id_zero_is_reconciled():
+    rows=[{"order_id":0,"amount_paise":1,"status":"PLACED"}]
+    report=reconcile_orders(rows,rows)
+    assert report["matched"]==[0]
+    assert report["invalid_internal_rows"]==[]
+
+
+def test_unhashable_order_ids_in_reconciliation_are_reported():
+    report=reconcile_orders([{"order_id":["A"],"amount_paise":1},{"order_id":{"x":1}}],
+                            [{"order_id":["A"],"amount_paise":1}])
+    assert report["invalid_internal_rows"]==[0,1]
+    assert report["invalid_provider_rows"]==[0]
+
+
+def test_unhashable_event_order_id_is_unrouted():
+    result,unrouted=apply_events([new_order("A",1000)],
+        [{"event_id":"e1","order_id":["A"],"type":"payment_confirmed"}])
+    assert unrouted==[0]
+    assert result["A"]["payment_status"]=="UNPAID"
