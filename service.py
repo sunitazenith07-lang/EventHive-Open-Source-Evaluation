@@ -40,7 +40,7 @@ def apply_order_event(order: dict, event: dict) -> dict:
         if out["refunded_paise"] >= out.get("refund_due_paise",0):
             out["payment_status"]="REFUNDED"
 
-    out["processed_event_ids"].append(event_id)
+      out["processed_event_ids"].append(event_id)
     return out
 
 
