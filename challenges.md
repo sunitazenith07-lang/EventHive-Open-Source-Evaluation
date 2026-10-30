@@ -232,3 +232,6 @@ if event_type == "payment_confirmed":
    )
    ```
    Because `"status" in provider_record` evaluates to `False`, `status_matches` becomes `False`. Consequently, line 213 (`if not status_matches: report["status_mismatches"].append(order_id)`) appends the order to `status_mismatches`. The specification is silent on whether a missing schema key should trigger an error/malformed record bucket or be classified as a status mismatch, though treating absence of status as a status mismatch is a safe and defensive default.
+3. **Duplicate `order_id` Entries in Reconciliation Summaries:**
+   The specification states: *"Reconcile internal and provider summaries by order ID. Report missing records, amount mismatches and status mismatches separately and deterministically."*
+   However, it does not define a separate output bucket for internal or provider batches that contain multiple differing records for the same `order_id`. `reconcile_orders()` handles this by pre-indexing records into a dictionary (`{row["order_id"]: row for row in ...}`), implementing Last-Write-Wins (LWW) semantics. This ensures deterministic $O(N+M)$ execution and complete crash resilience, though conflicting duplicates within a single side's summary are collapsed rather than flagged as internal data anomalies.

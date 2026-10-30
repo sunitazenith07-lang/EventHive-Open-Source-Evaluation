@@ -4,7 +4,7 @@
 > **Repository:** `OrderOps-Open-Source-Evaluation`
 > **Evaluation Component:** Mandatory Testing Documentation
 > **Verification Command:** `python -m pytest -q`
-> **Actual Summary:** `225 passed in 0.13s`
+> **Actual Summary:** `226 passed in 0.13s`
 
 ---
 
@@ -26,7 +26,7 @@ This file replaces the starter prompt template `TESTING.md` (24 lines of instruc
 - **Actual Terminal Output:**
   ```text
   ................................................................................................................................................................................................................... [100%]
-  225 passed in 0.13s
+  226 passed in 0.13s
   ```
 
 ---
@@ -37,7 +37,7 @@ The automated test suite is organised into two distinct test modules under `test
 
 | Test Module | Test Functions | Total Test Cases | Focus Area |
 |---|---|---|---|
-| `tests/test_contract.py` | 23 unique functions | 23 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
+| `tests/test_contract.py` | 24 unique functions | 24 | Direct behavioral contract invariants, defensive programming, unhashable types, missing keys, field mapping. |
 | `tests/test_acceptance_matrix.py` | 14 unique functions | 202 | Parametrized combinatorial matrix testing: state transitions (28), event idempotency (20), valid refund ranges (10), invalid refund types (15), refund eligibility combinations (12), cumulative refund arithmetic (20), reconciliation status/amount variations (32), determinism (10), and rejection total scales (10). |
 
 ---

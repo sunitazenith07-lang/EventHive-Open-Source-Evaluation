@@ -242,3 +242,16 @@ def test_dispatch_started_on_cancelled_order_is_ignored():
     assert out["status"] == "CANCELLED"
     assert out["processed_event_ids"] == ["e1"]
 
+def test_reconciliation_duplicate_order_id_last_write_wins():
+    internal = [
+        {"order_id": "ORD-DUP", "total_paise": 1000, "status": "PLACED"},
+        {"order_id": "ORD-DUP", "total_paise": 2000, "status": "ACCEPTED"},
+    ]
+    provider = [
+        {"order_id": "ORD-DUP", "amount_paise": 2000, "status": "ACCEPTED"}
+    ]
+    report = reconcile_orders(internal, provider)
+    assert report["matched"] == ["ORD-DUP"]
+    assert report["amount_mismatches"] == []
+    assert report["status_mismatches"] == []
+

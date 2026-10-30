@@ -103,3 +103,5 @@ The table below traces a real-world asynchronous food-ordering journey for Order
    All monetary amounts are strictly positive integer paise (₹1 = 100 paise). Any non-integer type (including `bool`, `float`, and `str`) is treated as malformed and dropped.
 4. **Independent Partial Refunds:**
    Multiple partial refunds are supported as long as the cumulative total does not exceed `refund_due_paise`. The `payment_status` transitions to `"REFUNDED"` if and only if `refunded_paise == refund_due_paise`.
+5. **Reconciliation Summary Deduplication (Last-Write-Wins):**
+   `reconcile_orders()` expects pre-aggregated summary lists where `order_id` is unique (the evaluation dataset contains 0 duplicate order IDs in `orders` and `provider_records`). If duplicate `order_id` rows appear within `internal` or `provider`, hash-map indexing resolves collisions via **Last-Write-Wins (LWW)**, where later entries supersede earlier ones. In production systems, an upstream aggregation or duplicate-flagging step should precede point-in-time reconciliation.
