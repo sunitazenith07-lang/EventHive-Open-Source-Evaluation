@@ -1,6 +1,20 @@
 """Starter order lifecycle and refund service; all data is synthetic."""
 from copy import deepcopy
 
+REFUNDABLE_STATUSES=("CANCELLED","REJECTED")
+
+
+def _refund_allowed(order: dict, amount) -> bool:
+    """A refund needs a paid cancelled/rejected order and a positive integer
+    amount that fits in the outstanding refund due."""
+    # bool is a subclass of int, so True would otherwise count as 1 paise.
+    if not isinstance(amount,int) or isinstance(amount,bool) or amount<=0:
+        return False
+    if order.get("status") not in REFUNDABLE_STATUSES or order["payment_status"]!="PAID":
+        return False
+    outstanding=order["refund_due_paise"]-order["refunded_paise"]
+    return amount<=outstanding
+
 
 def apply_order_event(order: dict, event: dict) -> dict:
     """Return an updated copy of order.
@@ -38,10 +52,9 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
         out["status"]="DELIVERED"
-    elif kind=="refund_processed":
-        # Bug to find: validate eligibility, positive amount and maximum refund.
-        out["refunded_paise"] += event.get("amount_paise",0)
-        if out["refunded_paise"] >= out.get("refund_due_paise",0):
+    elif kind=="refund_processed" and _refund_allowed(out,event.get("amount_paise")):
+        out["refunded_paise"] += event["amount_paise"]
+        if out["refunded_paise"]==out["refund_due_paise"]:
             out["payment_status"]="REFUNDED"
 
     out["processed_event_ids"].append(event_id)

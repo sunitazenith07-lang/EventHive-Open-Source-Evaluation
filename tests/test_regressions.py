@@ -37,3 +37,43 @@ def test_event_without_id_is_ignored():
         out=apply_order_event(order,e)
         assert out["payment_status"]=="UNPAID"
         assert out["processed_event_ids"]==[]
+
+
+# Bug 2: refund validation
+
+def test_partial_then_final_refund_marks_refunded():
+    order=refundable_order()
+    order=apply_order_event(order,event("r1","refund_processed",amount_paise=400))
+    assert order["payment_status"]=="PAID"
+    order=apply_order_event(order,event("r2","refund_processed",amount_paise=600))
+    assert order["refunded_paise"]==1000
+    assert order["payment_status"]=="REFUNDED"
+
+
+def test_refund_after_full_refund_is_rejected():
+    order=apply_order_event(refundable_order(),event("r1","refund_processed",amount_paise=1000))
+    out=apply_order_event(order,event("r2","refund_processed",amount_paise=1))
+    assert out["refunded_paise"]==1000
+
+
+def test_refund_without_amount_is_rejected():
+    out=apply_order_event(refundable_order(),event("r1","refund_processed"))
+    assert out["refunded_paise"]==0
+    assert out["payment_status"]=="PAID"
+
+
+def test_rejected_refund_id_is_still_recorded():
+    out=apply_order_event(refundable_order(),event("r1","refund_processed",amount_paise=-5))
+    assert out["processed_event_ids"]==["r1"]
+
+
+def test_full_paid_rejection_lifecycle():
+    order=new_order("O1",2500)
+    for e in [event("p1","payment_confirmed"),event("x1","restaurant_rejected"),
+              event("r1","refund_processed",amount_paise=1000),
+              event("r2","refund_processed",amount_paise=1500)]:
+        order=apply_order_event(order,e)
+    assert order["status"]=="REJECTED"
+    assert order["refund_due_paise"]==2500
+    assert order["refunded_paise"]==2500
+    assert order["payment_status"]=="REFUNDED"
