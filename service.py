@@ -54,7 +54,7 @@ def apply_order_event(order: dict, event: dict) -> dict:
         if out["payment_status"]=="PAID":
             total = out.get('total_paise')
             if type(total) is int and total > 0:
-                out['refunded_due_paise'] = total
+                out['refund_due_paise'] = total
     elif kind=="dispatch_started" and out.get("status")=="ACCEPTED":
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
@@ -95,31 +95,43 @@ def apply_order_event(order: dict, event: dict) -> dict:
 
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     """Compare transaction summaries keyed by order_id."""
-    left={r.get("order_id"):r for r in internal}
-    right={r.get("order_id"):r for r in provider}
-    report={"matched":[],"missing_from_provider":[],"missing_from_internal":[],
-            "amount_mismatches":[],"status_mismatches":[]}
-    for key in sorted(set(left)|set(right),key=lambda x:str(x)):
+    report = {
+        "matched": [],
+        "missing_from_provider": [],
+        "missing_from_internal": [],
+        "amount_mismatches": [],
+        "status_mismatches": [],
+    }
+
+    left = {}
+    right = {}
+
+    for record in internal:
+        if isinstance(record, dict) and record.get("order_id"):
+            left[record["order_id"]] = record
+
+    for record in provider:
+        if isinstance(record, dict) and record.get("order_id"):
+            right[record["order_id"]] = record
+
+    for key in sorted(set(left) | set(right), key=str):
         if key not in right:
             report["missing_from_provider"].append(key)
         elif key not in left:
             report["missing_from_internal"].append(key)
         else:
-            a,b=left[key],right[key]
-            internal_amount = a.get("total_paise")
-            if internal_amount is None:
-                internal_amount = a.get("amount_paise")
+            a, b = left[key], right[key]
 
-            provider_amount = b.get("amount_paise")
-            if provider_amount is None:
-                provider_amount = b.get("total_paise")
+            internal_amount = a.get("total_paise", a.get("amount_paise"))
+            provider_amount = b.get("amount_paise", b.get("total_paise"))
 
             amount_matches = (
-                internal_amount is not None
-                    and provider_amount is not None
-                    and internal_amount == provider_amount
-)
-            status_matches = a.get('status') == b.get('status')
+                type(internal_amount) is int
+                and type(provider_amount) is int
+                and internal_amount == provider_amount
+            )
+            status_matches = a.get("status") == b.get("status")
+
             if not amount_matches:
                 report["amount_mismatches"].append(key)
 
@@ -128,4 +140,5 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
 
             if amount_matches and status_matches:
                 report["matched"].append(key)
+
     return report

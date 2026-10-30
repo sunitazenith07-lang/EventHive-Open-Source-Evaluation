@@ -21,11 +21,10 @@ For each major defect, describe the observed symptom, the hypothesis you tested,
 - Issue 3: Reconciliation did not correctly compare order statuses and amount fields.
 
 ## 4. Implementation decisions
-- Added event ID and event type validation.
-- Added duplicate event protection.
-- Added refund eligibility and amount validation.
-- Added cumulative refund limit.
-- Corrected amount and status reconciliation.
+- Fixed paid cancellation refund handling by correcting the refund_due_paise field.
+- Improved reconciliation to safely ignore malformed records and records without order IDs.
+- Added validation to reject boolean values as monetary amounts.
+- Added regression tests for these edge cases.
 
 ## 5. Verification
 - Added 6 regression tests.

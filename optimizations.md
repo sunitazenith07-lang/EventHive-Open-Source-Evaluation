@@ -10,14 +10,13 @@ Improved correctness and maintainability of event processing and reconciliation.
 - Compare order amounts and statuses separately..
 
 ## 3. Changes implemented
-- Added duplicate event protection.
-- Added refund validation.
-- Improved reconciliation logic.
+- Added safe handling of malformed reconciliation records.
+- Added integer type validation for reconciliation amounts.
+- Used deterministic sorting for reconciliation results.
+- Kept reconciliation output structure unchanged to preserve compatibility.
 
 ## 4. Trade-offs
 The first event with a given IID is accepted. Lter events with same ID are ignored.
 
 ## 5. Further improvements
-- HAndle duplicate order IDs.
-- Add better malformed-record reporting.
-- Add persistent event storage.
+Work Done
