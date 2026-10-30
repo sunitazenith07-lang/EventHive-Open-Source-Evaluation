@@ -44,7 +44,7 @@
 ## 5. Verification
 - Tests added or changed: Added 3 regression tests in `tests/test_contract.py` (`test_regression_boolean_refund_is_rejected`, `test_regression_total_paise_reconciliation`, `test_regression_dual_mismatch`).
 - Commands run and actual results:
-  - `python -m pytest -q` -> `215 passed, 1 warning in 0.29s`
+  - `python -m pytest -q` -> `215 passed in 0.29s (0 warnings, 0 failures)`
   - `python -m main` -> Correct demo output with `ORD-101` matched, `ORD-102` in status mismatches, `ORD-103` missing from provider, `ORD-104` missing from internal.
 - Edge cases verified: Boolean amounts, negative/zero refund amounts, out-of-order cancellations, duplicate event replays, partial vs full refund completion.
 - Remaining failures or known limitations: 0 failures.

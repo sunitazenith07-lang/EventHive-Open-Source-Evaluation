@@ -3,7 +3,7 @@
 ## Test command and environment
 - Python version: Python 3.14.7
 - Command run: `python -m pytest -q`
-- Actual test summary: `215 passed, 1 warning in 0.29s`
+- Actual test summary: `215 passed in 0.29s (0 warnings, 0 failures)`
 
 ## Edge-case evidence
 
