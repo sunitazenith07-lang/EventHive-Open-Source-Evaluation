@@ -1,32 +1,35 @@
-# approach.md - Required submission
+# Approach — OrderOps
 
-Complete this file in your own words. Be concise and specific to the work you actually performed.
+## Baseline and environment
+- Python 3.11 on Windows, using VS Code and PowerShell.
+- Command: `python -m pytest -q`.
+- Initial reported result: **150 passed, 62 failed, 1 warning**. After a local duplicate-event guard was added, a later run reported **171 passed, 41 failed, 1 warning**.
+- On branch `fix/order-event-refund-reconciliation`, the observed result was **212 passed, 1 warning** (twice, in 0.84s and 0.94s).
+- The warning originates from the installed `anyio` pytest plugin's use of a deprecated `CallSpec2` alias; it is not a failing application test.
 
-## 1. Baseline
-- Commands run before editing:
-- Initial test result (include the actual summary):
-- Demo/output observed:
+## Codebase and data flow
+- `models.new_order` creates an order with status, payment status, refund counters, and processed event IDs.
+- `service.apply_order_event` deep-copies the input, applies an order/payment/refund event, and records event IDs.
+- `service.reconcile_orders` compares internal and provider order summaries by ID.
+- `main.py` runs the synthetic demo.
+- Visible tests include transition matrices, refund constraints, replay idempotency, deterministic reconciliation, and input immutability.
 
-## 2. Codebase understanding
-- Important files and functions inspected:
-- Order lifecycle or data flow traced:
-- How you confirmed your understanding:
+## Defects investigated and corrections
+1. **Duplicate delivery of events:** The original code appended the same event ID repeatedly. The revised logic checks previously processed IDs before any state update.
+2. **Refund amount safety:** The original implementation directly added `amount_paise`, allowing negatives, floats, booleans, excess amounts, and exceptions on invalid types. The fix accepts only a positive integer amount within the outstanding refundable balance.
+3. **Refund eligibility:** The original code could refund an unpaid or active order. The fix requires a paid order in `CANCELLED` or `REJECTED` status with a positive refund due.
+4. **Partial versus full refunds:** A successful partial refund stays `PAID`; only reaching the exact refund due marks payment `REFUNDED`.
+5. **Reconciliation:** The original function checked amount differences but could classify different statuses as matched. The revision reports amount and status differences independently and treats records as matched only if both agree.
 
-## 3. Investigation and implementation strategy
-For each major defect, describe the observed symptom, the hypothesis you tested, evidence from a test/log/example, and the fix chosen.
-- Issue 1:
-- Issue 2:
-- Issue 3 (if applicable):
+## Decisions and limitations
+- The service continues to return a deep-copied order to avoid mutating the caller's input.
+- The refund amount uses `type(amount) is int`, so Python booleans are not accidentally counted as paise.
+- Refunds that would exceed the remaining balance are rejected rather than silently capped.
+- The implementation retains the existing public function signatures and report categories.
+- The repository's AI-use requirements should be clarified with the evaluator; assistance was used to produce code and these notes and must not be misrepresented as independent work.
 
-## 4. Implementation decisions
-- Main changes and why:
-- Alternatives considered and why rejected:
-- Assumptions:
-
-## 5. Verification
-- Tests added or changed:
-- Commands run and actual results:
-- Edge cases verified:
-- Remaining failures or known limitations:
-
-Record actual engineering decisions and evidence. Do not claim tests or experiments you did not run.
+## Verification
+- `python -m pytest -q`: **212 passed, 1 warning**.
+- `python -m main`: produced reconciliation lists for order IDs `ORD-101` through `ORD-104`.
+- `git status`: working tree clean after switching to the fix branch.
+- These are visible/local checks only; passing them does not establish that all hidden or future edge cases pass.
