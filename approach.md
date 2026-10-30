@@ -154,3 +154,8 @@ KNOWN LIMITATIONS
     -Now any ID that appears more than once on either side is listed in duplicate_order_ids and is not put in matched or any mismatch list, because there's no way to know which copy is right.
     -This replaces the "only the last one is kept" limitation from Section 5.
     -Test: test_duplicate_order_id_is_reported_not_matched.
+4.No way to process a batch of events
+    -apply_order_event handles one event on one order. To run the 219 events in records.json against the 150 orders I had to write my own loop, matching each event's order_id to an order.
+    -Added apply_events(orders, events). It applies events in order, keyed by order_id, and returns the updated orders plus the positions of events whose order_id is missing or unknown, so they aren't silently lost.
+    -The input orders are not changed, same as apply_order_event.
+    -Tests: test_apply_events_routes_by_order_id_and_reports_unknown, and test_dataset_refunds_never_exceed_due, which runs the whole dataset and checks no order is refunded more than it's due. That turns my one-off manual check into a permanent test.

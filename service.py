@@ -64,6 +64,23 @@ def apply_order_event(order: dict, event: dict) -> dict:
     return out
 
 
+def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, list[int]]:
+    """Apply events in order, routing each by its order_id.
+
+    Returns the updated orders keyed by order_id, and the positions of events
+    whose order_id is missing or unknown.
+    """
+    by_id={o["order_id"]:o for o in orders}
+    unrouted=[]
+    for i,e in enumerate(events):
+        oid=e.get("order_id") if isinstance(e,dict) else None
+        if oid not in by_id:
+            unrouted.append(i)
+            continue
+        by_id[oid]=apply_order_event(by_id[oid],e)
+    return by_id,unrouted
+
+
 def _amount(record: dict):
     """Provider rows use amount_paise; internal orders (new_order) use total_paise."""
     return record["amount_paise"] if "amount_paise" in record else record.get("total_paise")

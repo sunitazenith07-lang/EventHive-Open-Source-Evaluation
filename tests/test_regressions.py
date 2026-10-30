@@ -1,7 +1,7 @@
 """Regression tests for defects fixed in service.py."""
 import pytest
 from models import new_order
-from service import apply_order_event, reconcile_orders
+from service import apply_events, apply_order_event, reconcile_orders
 
 
 def event(event_id, kind, **extra):
@@ -165,3 +165,32 @@ def test_duplicate_order_id_is_reported_not_matched():
     assert report["duplicate_order_ids"]==["A","C"]
     assert report["matched"]==["B"]
     assert report["missing_from_internal"]==[]
+
+
+# QoL 4: batch event processing
+
+def test_apply_events_routes_by_order_id_and_reports_unknown():
+    orders=[new_order("A",1000),new_order("B",500)]
+    events=[{"event_id":"1","order_id":"A","type":"payment_confirmed"},
+            {"event_id":"2","order_id":"B","type":"restaurant_accepted"},
+            {"event_id":"3","order_id":"Z","type":"payment_confirmed"},
+            {"event_id":"4","type":"payment_confirmed"},
+            None,
+            {"event_id":"5","order_id":"A","type":"restaurant_rejected"},
+            {"event_id":"5","order_id":"A","type":"restaurant_rejected"}]
+    result,unrouted=apply_events(orders,events)
+    assert unrouted==[2,3,4]
+    assert result["A"]["status"]=="REJECTED"
+    assert result["A"]["refund_due_paise"]==1000
+    assert result["A"]["processed_event_ids"]==["1","5"]
+    assert result["B"]["status"]=="ACCEPTED"
+    assert orders[0]["status"]=="PLACED"
+
+
+def test_dataset_refunds_never_exceed_due():
+    import json
+    from pathlib import Path
+    data=json.loads((Path(__file__).parent.parent/"data"/"records.json").read_text(encoding="utf-8"))
+    result,_=apply_events(data["orders"],data["events"])
+    for o in result.values():
+        assert 0<=o["refunded_paise"]<=o["refund_due_paise"]
