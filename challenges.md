@@ -1,23 +1,25 @@
-# challenges.md - COMPULSORY submission
+# challenges.md - OrderOps investigation record
 
-This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
+AI assistance was used during this work. Check the current evaluation policy before submitting; this file does not claim individual, no-AI authorship.
 
-## 1. Challenge or confusing behaviour
-What specific state transition, test failure, data condition, or code path was difficult to understand?
+## 1. Challenge
+The first checkout was a GitHub VFS workspace, while Git and tests required a local clone. The VFS edits were not present in the clean local clone, so the changes had to be reapplied on a feature branch.
 
 ## 2. Evidence
-Summarize the relevant assertion, error message, output, or minimal reproducible example. Do not include secrets or real customer data.
+- The local clone started clean on `main` and its `service.py` still contained the starter defects.
+- Baseline pytest: 62 failed, 150 passed.
+- Failing assertions included duplicate event IDs, invalid refund mutations, and status mismatches reported as matched.
 
 ## 3. What I tried
-List the debugging steps or experiments you actually performed and what each one showed.
+- Read the starter implementation and both test files.
+- Ran the baseline suite and demo in the local clone.
+- Reproduced behavior using existing acceptance tests, then added targeted regressions.
 
 ## 4. Resolution
-What was the root cause? What did you change, and why did that address the cause rather than hide the symptom?
+The service did not check event IDs before applying them, accepted unchecked refund values, and omitted provider/internal status comparison. The fix validates event/refund inputs and compares both reconciliation fields.
 
 ## 5. Proof and regression prevention
-Which test(s) demonstrate the fix? What related case could still break?
+The final suite passed 219 tests. New coverage checks duplicate refunds, malformed events, amount-plus-status mismatches, and full refund completion after partial processing.
 
-## 6. Unresolved challenge or next step
-State any remaining limitation and how you would investigate it next.
-
-If you did not encounter a major blocker, say that clearly and describe the hardest edge case you deliberately tested and what it taught you. Do not manufacture a story; describe observable engineering work.
+## 6. Remaining challenge
+Repeated rows with the same order ID still resolve to the last row in the existing dictionaries. No duplicate-summary policy was specified or added; define one and add tests if such rows are valid input.

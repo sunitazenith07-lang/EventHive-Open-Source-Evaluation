@@ -35,6 +35,17 @@ def test_duplicate_event_is_idempotent():
     assert second["processed_event_ids"]==["e1"]
 
 
+def test_duplicate_refund_event_is_idempotent():
+    order=new_order("O1",1000,"CANCELLED")
+    order.update(payment_status="PAID",refund_due_paise=1000)
+    refund=event("r1","refund_processed",amount_paise=400)
+    first=apply_order_event(order,refund)
+    second=apply_order_event(first,refund)
+    assert second["refunded_paise"]==400
+    assert second["payment_status"]=="PAID"
+    assert second["processed_event_ids"]==["r1"]
+
+
 def test_refund_requires_eligible_order():
     out=apply_order_event(new_order("O1",1000),event("r1","refund_processed",amount_paise=500))
     assert out["refunded_paise"]==0
@@ -64,6 +75,22 @@ def test_partial_refund_is_not_marked_complete():
     assert out["payment_status"]=="PAID"
 
 
+def test_paid_rejection_partial_then_full_refund_flow():
+    order=new_order("O1",1000)
+    for current_event in [
+        event("e1","payment_confirmed"),
+        event("e2","restaurant_rejected"),
+        event("r1","refund_processed",amount_paise=400),
+        event("r2","refund_processed",amount_paise=600),
+    ]:
+        order=apply_order_event(order,current_event)
+
+    assert order["status"]=="REJECTED"
+    assert order["payment_status"]=="REFUNDED"
+    assert order["refund_due_paise"]==1000
+    assert order["refunded_paise"]==1000
+
+
 def test_delivery_state_flow():
     order=new_order("O1",1000)
     for e in [event("1","restaurant_accepted"),event("2","dispatch_started"),event("3","order_delivered")]:
@@ -81,6 +108,16 @@ def test_reconcile_reports_missing_and_amount_difference():
 def test_reconcile_reports_status_difference():
     report=reconcile_orders([{"order_id":"A","amount_paise":100,"status":"PLACED"}],
         [{"order_id":"A","amount_paise":100,"status":"DELIVERED"}])
+    assert report["status_mismatches"]==["A"]
+    assert report["matched"]==[]
+
+
+def test_reconcile_reports_amount_and_status_differences_separately():
+    report=reconcile_orders(
+        [{"order_id":"A","amount_paise":100,"status":"PLACED"}],
+        [{"order_id":"A","amount_paise":90,"status":"CANCELLED"}],
+    )
+    assert report["amount_mismatches"]==["A"]
     assert report["status_mismatches"]==["A"]
     assert report["matched"]==[]
 

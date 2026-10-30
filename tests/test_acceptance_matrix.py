@@ -161,8 +161,14 @@ def test_reconciliation_results_are_deterministic(n):
 def test_unknown_event_does_not_mutate_order_state(kind):
     order = new_order("O", 5000)
     result = apply_order_event(order, ev("E", kind, amount_paise=3000))
-    assert result["status"] == "PLACED"
-    assert result["refunded_paise"] == 0
+    assert result == order
+
+
+@pytest.mark.parametrize("event", [{}, {"event_id":"E"}, {"type":"payment_confirmed"},
+                                    {"event_id":"E","type":[]}])
+def test_malformed_event_is_ignored(event):
+    order = new_order("O", 5000)
+    assert apply_order_event(order, event) == order
 
 
 @pytest.mark.parametrize("total", [1, 10, 100, 500, 1000, 2500, 5000, 9999, 10000, 99999])

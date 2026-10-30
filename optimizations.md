@@ -1,24 +1,22 @@
-# optimizations.md - Required submission
+# optimizations.md - OrderOps trade-offs
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
+AI assistance was used for this work; verify that this is permitted before submitting it for evaluation. No speedup was measured.
 
 ## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+The observed gap was correctness, not runtime performance: the baseline had 62 failing tests, including refund bounds and reconciliation status checks.
 
 ## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+- A handler registry could organize event dispatch but adds indirection for seven event types; the current explicit branches remain easier to compare with the transition matrix.
+- A specialized reconciliation structure was not justified. The existing dictionaries already provide direct order-ID lookup.
 
 ## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
+- Added event replay checks and refund eligibility/bounds validation.
+- Classified amount and status differences independently.
+- Added regressions for replay, malformed events, reconciliation, and the end-to-end refund path.
+- Final correctness evidence: 219 tests passed. No performance benchmark was run.
 
 ## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
+Validation adds conditions to `apply_order_event`, but avoids introducing helper abstractions or optional features. No performance claim is made.
 
 ## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
-
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+Define behavior for duplicate order-summary IDs and test malformed summary rows. Benchmark reconciliation on representative data before attempting performance changes.
