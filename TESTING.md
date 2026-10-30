@@ -5,7 +5,7 @@ Complete this file with test evidence from your own work. Include at least five 
 ## Test command and environment
 - **Python version:** Python 3.13.15
 - **Command run:** `python -m pytest -q`
-- **Actual test summary:** `223 passed in 0.18s`
+- **Actual test summary:** `226 passed in 0.21s`
 
 ## Edge-case evidence
 
@@ -30,8 +30,11 @@ Defects fixed and the tests added to prevent regressions:
 - **`tests/test_regression.py::test_cumulative_refund_exceeding_due_is_rejected`**: Prevents over-refunding beyond due amount.
 - **`tests/test_regression.py::test_reconciliation_simultaneous_amount_and_status_mismatch`**: Verifies independent reporting for dual mismatches.
 - **`tests/test_regression.py::test_reconciliation_handles_none_and_malformed_records`**: Protects against malformed, null, and non-dict records.
+- **`tests/test_regression.py::test_missing_event_id_and_repeated_conflicting_payload`**: Protects against payload collision on duplicate event IDs and handles events lacking event IDs.
+- **`tests/test_regression.py::test_boundary_order_amounts_integer_paise`**: Validates boundary order amounts down to 1 paisa and rejects 0 amount refunds.
+- **`tests/test_regression.py::test_process_full_synthetic_dataset_records`**: End-to-end replay test verifying all 150 internal orders, 219 synthetic events, and 163 provider records in `data/records.json`.
 - **`tests/test_regression.py::test_export_awaiting_refund_csv`**: Tests the optional stretch export feature for outstanding refunds.
 
 ## Remaining failures or limitations
-- **Remaining failures:** None. All 223 tests pass.
+- **Remaining failures:** None. All 226 tests pass.
 - **Limitations:** Processing assumes single-thread in-memory execution. In multi-server production environments, distributed locks or database transactions are recommended for concurrent event streams.

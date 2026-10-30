@@ -37,7 +37,7 @@
 - **Measurement method and result:**
   - Evaluated on Windows with Python 3.13.15:
     - Baseline: 212 tests ran in 0.55s (62 failures).
-    - Optimized implementation: 223 tests ran in 0.18s (0 failures).
+    - Optimized implementation: 226 tests ran in 0.21s (0 failures).
     - Synthetic dataset processing (`records.json`: 150 orders, 219 events, 163 provider records) completed in under 15ms.
 
 ## 4. Trade-offs

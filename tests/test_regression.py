@@ -1,4 +1,6 @@
 """Comprehensive regression tests for OrderOps lifecycle, refund safety, and reconciliation."""
+import json
+from pathlib import Path
 import pytest
 from models import new_order
 from service import apply_order_event, reconcile_orders, export_awaiting_refund_csv
@@ -111,6 +113,40 @@ def test_cumulative_refund_exceeding_due_is_rejected():
     assert step2["payment_status"] == "PAID"
 
 
+def test_missing_event_id_and_repeated_conflicting_payload():
+    order = new_order("ORD-TEST-9", 3000)
+    # Event missing event_id processes cleanly without adding None to processed_event_ids
+    step1 = apply_order_event(order, {"type": "payment_confirmed"})
+    assert step1["payment_status"] == "PAID"
+    assert None not in step1["processed_event_ids"]
+
+    # First event with id "EV-CONFLICT"
+    step2 = apply_order_event(step1, ev("EV-CONFLICT", "restaurant_accepted"))
+    assert step2["status"] == "ACCEPTED"
+    assert step2["processed_event_ids"] == ["EV-CONFLICT"]
+
+    # Repeated event with identical event_id but conflicting payload (attempts restaurant_rejected)
+    step3 = apply_order_event(step2, ev("EV-CONFLICT", "restaurant_rejected"))
+    # Must be safely ignored due to idempotency by event_id
+    assert step3["status"] == "ACCEPTED"
+    assert step3["processed_event_ids"] == ["EV-CONFLICT"]
+
+
+def test_boundary_order_amounts_integer_paise():
+    # 1 paisa order boundary
+    order_1p = new_order("ORD-1P", 1, "CANCELLED")
+    order_1p.update(payment_status="PAID", refund_due_paise=1)
+    res_1p = apply_order_event(order_1p, ev("R1", "refund_processed", amount_paise=1))
+    assert res_1p["refunded_paise"] == 1
+    assert res_1p["payment_status"] == "REFUNDED"
+
+    # Reject 0 paisa refund
+    order_zero = new_order("ORD-ZERO", 5000, "CANCELLED")
+    order_zero.update(payment_status="PAID", refund_due_paise=5000)
+    res_zero = apply_order_event(order_zero, ev("RZ", "refund_processed", amount_paise=0))
+    assert res_zero["refunded_paise"] == 0
+
+
 def test_reconciliation_simultaneous_amount_and_status_mismatch():
     internal = [{"order_id": "ORD-BOTH", "amount_paise": 5000, "status": "PLACED"}]
     provider = [{"order_id": "ORD-BOTH", "amount_paise": 6000, "status": "CANCELLED"}]
@@ -144,3 +180,24 @@ def test_export_awaiting_refund_csv():
     assert len(lines) == 3  # Header + O1 (outstanding 3000) + O4 (outstanding 4000)
     assert "O1,CANCELLED,PAID,5000,2000,3000" in lines
     assert "O4,REJECTED,PAID,4000,0,4000" in lines
+
+
+def test_process_full_synthetic_dataset_records():
+    dataset_path = Path(__file__).resolve().parent.parent / "data" / "records.json"
+    if not dataset_path.exists():
+        pytest.skip("Dataset records.json not present")
+    with open(dataset_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    orders = {o["order_id"]: dict(o) for o in data["orders"]}
+    for event in data["events"]:
+        oid = event.get("order_id")
+        if oid in orders:
+            orders[oid] = apply_order_event(orders[oid], event)
+
+    report = reconcile_orders(list(orders.values()), data["provider_records"])
+    assert len(report["matched"]) == 87
+    assert len(report["missing_from_provider"]) == 12
+    assert len(report["missing_from_internal"]) == 25
+    assert len(report["amount_mismatches"]) == 20
+    assert len(report["status_mismatches"]) == 33

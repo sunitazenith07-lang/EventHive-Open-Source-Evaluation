@@ -15,7 +15,7 @@
 - [x] I ran `python -m pytest -q`.
 - [x] I added or updated regression tests for my change.
 - [x] I did not delete, skip, weaken or bypass existing tests.
-Actual test summary: 223 passed in 0.16s (0 failures, 0 errors, 0 skipped).
+Actual test summary: 226 passed in 0.21s (0 failures, 0 errors, 0 skipped).
 
 ## Required problem-solving documents (all three mandatory; 15 marks total)
 - [x] `approach.md` completed (5 marks).

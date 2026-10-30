@@ -69,7 +69,7 @@
   - Kept all existing tests in `test_acceptance_matrix.py` and `test_contract.py` unchanged.
   - Added `tests/test_regression.py` containing 11 comprehensive test functions covering edge cases from `records.json` and stretch functionality.
 - **Commands run and actual results:**
-  - `python -m pytest -q` -> `223 passed in 0.18s` (0 failures, 0 errors).
+  - `python -m pytest -q` -> `226 passed in 0.21s` (0 failures, 0 errors).
   - `python -m main` -> Correctly outputs:
     `matched: ['ORD-101']`
     `missing_from_provider: ['ORD-103']`
@@ -84,4 +84,4 @@
   - Simultaneous status and amount mismatches in reconciliation.
   - Processing synthetic dataset `data/records.json` (150 orders, 219 events, 163 provider records).
 - **Remaining failures or known limitations:**
-  - None. All 223 tests pass cleanly.
+  - None. All 226 tests pass cleanly.
