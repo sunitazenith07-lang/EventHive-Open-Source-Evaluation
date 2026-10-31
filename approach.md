@@ -149,8 +149,5 @@ KNOWN LIMITATIONS
     -apply_order_event only handles one event at a time, so I had to write my own loop to run the whole dataset.
     -Added apply_events, which runs a list of events on the right orders and lists any events whose order couldn't be found.
     -Also added a test that runs the whole dataset and checks no order is refunded more than it's due.
-5.Stretch: awaiting-refund report
-    -Picked this stretch because refunds are the main focus of the task, and support staff need to know which customers are still owed money.
-    -awaiting_refund_csv creates a CSV of every order that still has money to be refunded, sorted by order ID.
-    -The demo now runs a refund on ORD-101, replays the same refund, and shows the report. The replay is ignored.
-    -On the full dataset, 31 orders are still waiting for a refund.
+
+
