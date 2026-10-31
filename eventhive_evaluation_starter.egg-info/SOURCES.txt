@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+eventhive_evaluation_starter.egg-info/PKG-INFO
+eventhive_evaluation_starter.egg-info/SOURCES.txt
+eventhive_evaluation_starter.egg-info/dependency_links.txt
+eventhive_evaluation_starter.egg-info/top_level.txt
+tests/test_acceptance_matrix.py
+tests/test_contract.py
