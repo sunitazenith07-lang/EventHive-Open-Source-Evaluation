@@ -1,9 +1,5 @@
 # approach.md - Required submission
 
-# approach.md - Required submission
-
-Complete this file in your own words. Be concise and specific to the work you actually performed.
-
 ## 1. Baseline
 - Command run before editing: `python -m pytest -q`
 - Result of the original suite, before any fix: 62 failed, 150 passed (212 tests in total).

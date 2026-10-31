@@ -1,7 +1,5 @@
 # optimizations.md - Required submission
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
-
 ## 1. Baseline and objective
 
 This commit was about correctness, not speed. Reconciliation could report an order as matched even when the two statuses differed.

@@ -1,7 +1,5 @@
 # challenges.md - COMPULSORY submission
 
-This file is mandatory and worth 5 marks. Describe your actual experience honestly. Do not invent difficulties to fill the page.
-
 ## 1. Challenge or confusing behaviour
 
 The hard part of this bug was that nothing visibly broke. An order with the same amount but a different status on each side was reported as `matched`, with no error, so the report looked fine unless the statuses were compared.

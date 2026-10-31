@@ -39,7 +39,7 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="DELIVERED"
     elif kind == "refund_processed":
         amount = event.get("amount_paise")
-
+# Bug to find: validate eligibility, positive amount and maximum refund
         if (
             isinstance(amount, int)
             and not isinstance(amount, bool)
@@ -74,7 +74,7 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
 
             elif a.get("status") != b.get("status"):
                 report["status_mismatches"].append(key)
-
+       # Deliberate starter defect: mismatched statuses may be called matched.
             else:
                 report["matched"].append(key)
     return report

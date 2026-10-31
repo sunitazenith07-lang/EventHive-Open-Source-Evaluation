@@ -1,7 +1,5 @@
 # TESTING.md — Required submission
 
-Complete this file with test evidence from your own work. Include at least five edge cases. Do not claim a test passed unless you ran it.
-
 ## Test command and environment
 - Python version: 3.13.7
 - pytest version: 9.2.0
