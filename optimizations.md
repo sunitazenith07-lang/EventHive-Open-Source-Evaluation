@@ -4,40 +4,40 @@ Document optimizations you considered or implemented. Do not claim a speedup or 
 
 ## 1. Baseline and objective
 
-The objective was correctness, not speed. Refund processing accepted invalid amounts and could refund more than the amount due.
+The objective was correctness, not speed. Refunds could be applied to orders that were not eligible.
 
-The original test suite produced 62 failures and 150 passes, and the refund tests listed in `challenges.md` were among the failing ones. No performance benchmark was conducted.
+The original test suite produced 62 failures and 150 passes, and `test_refund_eligibility_matrix` was among the failing tests. No performance benchmark was conducted.
 
 ## 2. Options considered
 
-**Option 1: One inline validation condition in the refund branch (chosen)**
-- Expected benefit: Rejects invalid and excessive amounts with a small, readable change.
-- Risk: The condition has several parts, so it could become hard to read if more rules are added.
-- Decision: Accepted. It fixes the bug without restructuring `service.py`.
+**Option 1: Check only the payment status**
+- Expected benefit: Small change that stops refunds on unpaid orders.
+- Risk: Does not stop refunds on paid orders in the wrong state.
+- Decision: Rejected. The eligibility matrix still had a failing case (`FAILED` order with `PAID` payment status).
 
-**Option 2: Move validation into a helper function**
-- Expected benefit: Easier to reuse and test on its own.
+**Option 2: Check both payment status and order status in the existing condition (chosen)**
+- Expected benefit: Covers both unpaid orders and paid orders in ineligible states with a small change.
+- Risk: The allowed statuses are hard-coded, so they must stay consistent with the business rules.
+- Decision: Accepted.
+
+**Option 3: Move the eligibility rules into a helper function**
+- Expected benefit: Easier to read and reuse.
 - Risk: Adds a function and indirection for a single use.
-- Decision: Rejected for now. It was not needed for this bug.
-
-**Option 3: Raise an error for invalid amounts**
-- Expected benefit: Makes bad events visible.
-- Risk: Conflicts with the existing test name `test_invalid_refund_amounts_are_ignored`, which expects invalid amounts to be ignored.
-- Decision: Rejected.
+- Decision: Rejected for now.
 
 No alternative implementation was formally benchmarked.
 
 ## 3. Changes implemented
 
-- Change: Added refund amount validation (integer, not boolean, positive, no greater than the remaining refund due) in the `refund_processed` branch.
-  - Reason: Prevent invalid refunds and over-refunding.
-  - Tests used: `test_invalid_refund_amounts_are_ignored`, `test_valid_partial_and_full_refunds`, `test_refunds_cannot_exceed_due`.
+- Change: Added payment status (`PAID`) and order status (`REJECTED` or `CANCELLED`) checks to the refund condition.
+  - Reason: Restrict refund processing to eligible paid orders.
+  - Tests used: `test_refund_eligibility_matrix`.
   - Measurement method and result: No performance measurement conducted.
 
 ## 4. Trade-offs
 
-- Strict validation means malformed refund events are silently ignored rather than reported.
-- The inline condition keeps the code simple but may justify a helper function if more refund rules are added.
+- The condition is now long. It is readable, but adding more rules may justify a helper function.
+- Hard-coded statuses are strict: if the business later allows refunds in other states, this condition must be updated.
 - No refactoring was performed.
 
 Correctness and maintainability were prioritised over unnecessary complexity.
@@ -46,9 +46,9 @@ Correctness and maintainability were prioritised over unnecessary complexity.
 
 With more time, I would:
 
-1. Add a helper function for refund validation if more rules are added.
-2. Add tests for several partial refunds that together equal the refund due.
-3. Check whether an ignored invalid refund should still record its event ID as processed.
+1. Move the refund rules (amount, balance and eligibility) into one helper function if more rules are added.
+2. Add tests for several partial refunds on an eligible order.
+3. Check whether an ineligible refund should still record its event ID as processed.
 
 These would be validated with regression tests.
 

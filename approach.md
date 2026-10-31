@@ -5,71 +5,62 @@ Complete this file in your own words. Be concise and specific to the work you ac
 ## 1. Baseline
 - Commands run before editing: `python -m pytest -q`
 - Original test result before any fix: 62 failed, 150 passed (212 tests total).
-- Result at the start of this commit (after the duplicate-event fix only): [FILL IN: full-suite summary line from commit 1]
+- Result at the start of this commit (after the duplicate-event and refund-validation fixes): [FILL IN: full-suite summary line from commit 2]
 - Demo/output observed: [FILL IN: output of `python -m main` before this fix, or write "not recorded before this fix"]
 
 ## 2. Codebase understanding
 - Important files and functions inspected:
   - `service.py`: the `refund_processed` branch of `apply_order_event()`.
-  - `models.py`: `new_order()`, which creates an order with `refund_due_paise` and `refunded_paise` set to 0 and payment status `UNPAID`.
+  - `models.py`: `new_order()`, which sets the initial order status and payment status `UNPAID`.
   - Relevant tests in `tests/test_acceptance_matrix.py` and `tests/test_contract.py`.
 - Order lifecycle or data flow traced:
-  - A `refund_processed` event carries `amount_paise`.
-  - The service adds an accepted amount to `refunded_paise`.
-  - Payment status changes to `REFUNDED` when `refunded_paise` reaches `refund_due_paise`.
+  - A paid order that is rejected or cancelled gets a refund due equal to its order total.
+  - `refund_processed` events then add to `refunded_paise`.
+  - Payment status changes to `REFUNDED` when the refunded total reaches the refund due.
 - How understanding was confirmed:
-  - Inspected the refund branch and the fields it reads and updates.
-  - Read the refund test cases to see which amounts must be accepted and which ignored.
-  - Ran the refund tests after the change.
+  - Inspected the refund branch and the order and payment status values it can see.
+  - Read the refund eligibility matrix test to see which order and payment states must allow a refund.
+  - Ran the matrix test after each change.
 
 ## 3. Investigation and implementation strategy
 
-- Issue 2: Invalid refund amounts and over-refunding.
-  - Symptom: Refund amounts that were invalid (zero, negative, boolean, non-integer or wrong type) or larger than the remaining refund due needed to be ignored.
-  - Investigation: Examined `test_invalid_refund_amounts_are_ignored`, `test_valid_partial_and_full_refunds` and `test_refunds_cannot_exceed_due`.
-  - Fix: Add the refund only when the amount is an integer, is not a boolean, is greater than 0, and is no greater than `refund_due_paise - refunded_paise`:
+- Issue 3: Refund eligibility.
+  - Symptom: Refunds were being applied to orders that were not eligible.
+  - Investigation: Examined `test_refund_eligibility_matrix`, which covers unpaid, delivered, failed, rejected and cancelled orders, among other states. Checking only the payment status left one matrix case failing: an order in `FAILED` state with payment status `PAID` was still treated as eligible.
+  - Fix: Add two conditions to the refund check: payment status must be `PAID` and order status must be `REJECTED` or `CANCELLED`:
     ```python
-    elif kind == "refund_processed":
-        amount = event.get("amount_paise")
-
-        if (
-            isinstance(amount, int)
-            and not isinstance(amount, bool)
-            and amount > 0
-            and amount <= out["refund_due_paise"] - out["refunded_paise"]
-        ):
-            out["refunded_paise"] += amount
-
-            if out["refunded_paise"] >= out.get("refund_due_paise", 0):
-                out["payment_status"] = "REFUNDED"
-
-    out["processed_event_ids"].append(event_id)
-    return out
+    if (
+        isinstance(amount, int)
+        and not isinstance(amount, bool)
+        and amount > 0
+        and amount <= out["refund_due_paise"] - out["refunded_paise"]
+        and out["payment_status"] == "PAID"
+        and out["status"] in ("REJECTED", "CANCELLED")
+    ):
     ```
-  - Evidence: [FILL IN: targeted run of the three refund tests, e.g. "N passed, M deselected"]
+  - Evidence: The targeted refund eligibility matrix passed 12 cases.
 
 ## 4. Implementation decisions
 - Main changes and why:
-  - Validate the amount type and sign first, then compare it with the remaining refund balance, so invalid and excessive refunds do not change `refunded_paise`.
-  - Set payment status to `REFUNDED` only when the refunded total reaches the refund due, so a partial refund leaves the status as it was.
+  - Check the payment status as well as the order status, because a refund only makes sense for an order that has actually been paid.
+  - Restrict the order status to `REJECTED` or `CANCELLED`, because those are the states that create a refund due.
 - Alternatives considered and why rejected:
-  - Moving the validation into a helper function was not chosen; one inline condition was enough for this bug.
-  - Raising an error for invalid amounts was not chosen; the test name `test_invalid_refund_amounts_are_ignored` indicates they should be ignored.
+  - Checking only the payment status was tried first and was not enough (the `FAILED` + `PAID` case).
+  - Moving the eligibility rules into a helper function was not chosen; adding conditions to the existing check was enough.
   - No alternative implementation was formally benchmarked.
 - Assumptions:
+  - Only paid orders in `REJECTED` or `CANCELLED` state are eligible for refund processing.
   - Refund amounts are integer paise.
-  - A boolean is not a valid amount, even though `bool` is a subclass of `int` in Python.
-  - `refund_due_paise` is set by earlier events (rejection or cancellation of a paid order).
+  - The order status is stored in `out["status"]` and the payment status in `out["payment_status"]`.
 
 ## 5. Verification
 - Tests added or changed: No test files were modified. Existing tests were used as regression checks.
 - Commands run and actual results:
-  - Targeted refund tests: [FILL IN]
+  - Targeted refund eligibility matrix: 12 passed.
   - Full `python -m pytest -q` after this fix: [FILL IN: summary line]
 - Edge cases verified: [FILL IN after running; see TESTING.md]
 - Remaining failures or known limitations:
-  - This commit does not check payment status or order status before accepting a refund; that is the next bug and is fixed in a later commit.
   - Reconciliation status mismatch is not fixed at this commit.
-  - An ignored invalid refund event still has its event ID appended to `processed_event_ids` (the append runs for every event). This was read from the code and was not tested.
+  - An ignored (invalid or ineligible) refund event still has its event ID appended to `processed_event_ids` because the append runs for every event. This was read from the code and was not tested.
 
 Record actual engineering decisions and evidence. Do not claim tests or experiments you did not run.

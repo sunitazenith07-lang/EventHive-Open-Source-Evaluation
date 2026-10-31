@@ -4,7 +4,7 @@ This file is mandatory and worth 5 marks. Describe your actual experience honest
 
 ## 1. Challenge or confusing behaviour
 
-The challenge was deciding what counts as a valid refund amount. Checking the type and sign was not enough: a refund also must not push the refunded total past the refund due, so the check has to use the remaining balance, not just the amount.
+The challenge was deciding which order and payment states should allow a refund. Validating the amount was not enough on its own: the order also had to be in the right state.
 
 ## 2. Evidence
 
@@ -14,41 +14,39 @@ The original test suite produced:
 62 failed, 150 passed
 ```
 
-Tests that exposed the problem:
+The test that exposed the problem:
 
-- `test_invalid_refund_amounts_are_ignored`
-- `test_valid_partial_and_full_refunds`
-- `test_refunds_cannot_exceed_due`
+- `test_refund_eligibility_matrix`
 
-These tests cover invalid values such as zero, negative numbers, booleans, non-integer values, and amounts greater than the refund due.
+The matrix covers orders in different states, including `PLACED`, `ACCEPTED`, `OUT_FOR_DELIVERY`, `DELIVERED`, `REJECTED`, `CANCELLED` and `FAILED`, with different payment statuses.
 
-[FILL IN: paste the assertion error or failing output for one of these tests before the fix, if you have it.]
+[FILL IN: paste the failing matrix case or assertion output you saw, if you have it.]
 
 ## 3. What I tried
 
-1. Ran `python -m pytest -q` and `pytest -x -vv` to see the refund failures.
+1. Ran `python -m pytest -q` and `pytest -x -vv` to see the eligibility failures.
 2. Examined the `refund_processed` branch of `apply_order_event()` in `service.py`.
-3. First added validation for the amount type (integer, not boolean) and a positive value.
-4. Further test failures showed that amounts larger than the remaining refund were still accepted, so I added a remaining-balance check: `amount <= refund_due_paise - refunded_paise`.
-5. Kept the `REFUNDED` payment status update so it only happens when the refunded total reaches the refund due.
-6. Re-ran the refund tests.
+3. First added a check that the payment status is `PAID`.
+4. Re-ran the eligibility matrix. One case still failed: an order with order status `FAILED` and payment status `PAID` was still eligible.
+5. Added a check that the order status is `REJECTED` or `CANCELLED`.
+6. Re-ran the matrix: 12 cases passed.
 
 ## 4. Resolution
 
-- Root cause: the refund branch did not sufficiently validate the amount before adding it to `refunded_paise`.
-- What changed: the refund is now applied only when the amount is a positive integer (not a boolean) and does not exceed the remaining refund due.
-- Why it addresses the cause: invalid and excessive amounts no longer change `refunded_paise`, and the refunded total can never go above the refund due.
+- Root cause: the refund condition did not check the payment status or the order status, so refunds could be applied to orders that were not eligible.
+- What changed: the refund condition now also requires `payment_status == "PAID"` and `status in ("REJECTED", "CANCELLED")`.
+- Why it addresses the cause: refunds are now applied only to paid orders in the states that create a refund due.
 
 ## 5. Proof and regression prevention
 
-- Targeted refund tests: [FILL IN]
+- Targeted refund eligibility matrix: 12 passed.
 - Full suite after this fix: [FILL IN]
 - No test files were modified.
 
 Related cases that could still break:
-- Several partial refunds that together reach the exact refund due.
-- A refund event for an order that is not eligible for a refund (not yet fixed at this commit).
+- A refund event arriving after the order status changes.
+- Multiple partial refunds on an eligible order.
 
 ## 6. Unresolved challenge or next step
 
-Refund eligibility (payment status and order status) is not checked at this commit and is handled in the next commit. An invalid refund event is ignored, but its event ID is still recorded as processed; whether that is the intended behaviour was not investigated.
+Reconciliation status mismatch is not fixed at this commit and is handled in the next commit. An ineligible refund event is ignored, but its event ID is still recorded as processed; whether that is the intended behaviour was not investigated.
