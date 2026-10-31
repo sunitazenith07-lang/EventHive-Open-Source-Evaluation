@@ -13,9 +13,13 @@ def apply_order_event(order: dict, event: dict) -> dict:
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)
     out.setdefault("processed_event_ids",[])
-    event_id=event.get("event_id")
-    kind=event.get("type")
+    # event_id=event.get("event_id")
+    # kind=event.get("type")
+    event_id = event.get("event_id")
+    kind = event.get("type")
 
+    if event_id and event_id in out["processed_event_ids"]:
+        return out
     # Deliberate starter defects: duplicate and invalid refund events are not
     # fully protected, and some transitions need tighter validation.
     if kind=="payment_confirmed":
@@ -34,13 +38,36 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
         out["status"]="DELIVERED"
-    elif kind=="refund_processed":
-        # Bug to find: validate eligibility, positive amount and maximum refund.
-        out["refunded_paise"] += event.get("amount_paise",0)
-        if out["refunded_paise"] >= out.get("refund_due_paise",0):
-            out["payment_status"]="REFUNDED"
+    # elif kind=="refund_processed":
+    #     # Bug to find: validate eligibility, positive amount and maximum refund.
+    #     out["refunded_paise"] += event.get("amount_paise",0)
+    #     if out["refunded_paise"] >= out.get("refund_due_paise",0):
+    #         out["payment_status"]="REFUNDED"
+    elif kind == "refund_processed":
+        is_eligible = (
+            out.get("status") in ("CANCELLED", "REJECTED")
+            and out.get("payment_status") == "PAID"
+            and out.get("refund_due_paise", 0) > 0
+        )
+        amount = event.get("amount_paise")
 
-    out["processed_event_ids"].append(event_id)
+        is_valid_amount = (
+            isinstance(amount, int)
+            and not isinstance(amount, bool)
+            and amount > 0
+        )
+
+        if is_eligible and is_valid_amount:
+            remaining_due = out["refund_due_paise"] - out["refunded_paise"]
+            if amount <= remaining_due:
+                out["refunded_paise"] += amount
+                if out["refunded_paise"] == out["refund_due_paise"]:
+                    out["payment_status"] = "REFUNDED"
+
+    # out["processed_event_ids"].append(event_id)
+    # return out
+    if event_id:
+            out["processed_event_ids"].append(event_id)
     return out
 
 
@@ -56,10 +83,17 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
         elif key not in left:
             report["missing_from_internal"].append(key)
         else:
-            a,b=left[key],right[key]
+            # a,b=left[key],right[key]
+            # if a.get("amount_paise") != b.get("amount_paise"):
+            #     report["amount_mismatches"].append(key)
+            # # Deliberate starter defect: mismatched statuses may be called matched.
+            # else:
+            #     report["matched"].append(key)
+            a, b = left[key], right[key]
             if a.get("amount_paise") != b.get("amount_paise"):
                 report["amount_mismatches"].append(key)
-            # Deliberate starter defect: mismatched statuses may be called matched.
+            elif a.get("status") != b.get("status"):
+                report["status_mismatches"].append(key)
             else:
                 report["matched"].append(key)
     return report
