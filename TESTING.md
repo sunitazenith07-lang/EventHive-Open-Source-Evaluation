@@ -3,7 +3,7 @@
 ## Test command and environment
 -Python 3.14.7 (local), pytest 9.2.0. CI uses Python 3.11.
 -Command: python -m pytest -q
--Before: 62 failed, 150 passed. Now: 264 passed (52 new).
+-Before: 62 failed, 150 passed. Now: 286 passed (74 new).
 
 ## Edge-case evidence
 
@@ -21,7 +21,7 @@
 | 10 | Empty reconciliation | All lists empty | All empty | test_empty_reconciliation |
 
 ## Regression tests added
--52 cases in tests/test_regressions.py. No original test changed.
+-74 cases in tests/test_regressions.py. No original test changed.
 
 | Bug | Main tests |
 |---|---|
@@ -35,6 +35,11 @@
 | ID reused across orders | test_event_id_reused_on_another_order_is_skipped |
 | apply_events crashes | test_apply_events_reports_orders_without_usable_id |
 | Weak "not mutated" test | test_input_order_and_nested_event_list_are_not_mutated |
+| Null or text amounts on an order | test_refund_on_order_with_broken_amounts_is_ignored |
+| Bad processed_event_ids | test_null_event_history_counts_as_empty |
+| Order not a dict | test_non_dict_order_is_returned_unchanged |
+| None instead of a list | test_apply_events_treats_none_as_no_rows |
+| Result dict passed straight on | test_awaiting_refund_csv_accepts_the_apply_events_result |
 
 ## Remaining failures or limitations
 -No failing tests.
