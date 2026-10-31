@@ -396,3 +396,23 @@ def test_apply_events_with_null_event_history():
 @pytest.mark.parametrize("bad",[None,"O1",[],42])
 def test_non_dict_order_is_returned_unchanged(bad):
     assert apply_order_event(bad,event("p1","payment_confirmed"))==bad
+
+
+# Follow-up 8: None instead of a list crashed apply_events, reconcile_orders
+# and awaiting_refund_csv with TypeError, although an empty list worked.
+
+def test_apply_events_treats_none_as_no_rows():
+    result,skipped=apply_events(None,None)
+    assert result=={}
+    assert all(v==[] for v in skipped.values())
+    kept,_=apply_events([new_order("A",1000)],None)
+    assert kept["A"]["status"]=="PLACED"
+
+
+def test_reconcile_orders_treats_none_as_no_rows():
+    assert all(v==[] for v in reconcile_orders(None,None).values())
+    assert reconcile_orders([new_order("A",1000)],None)["missing_from_provider"]==["A"]
+
+
+def test_awaiting_refund_csv_treats_none_as_no_rows():
+    assert awaiting_refund_csv(None)=="order_id,status,refund_due_paise,refunded_paise,outstanding_paise\n"

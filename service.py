@@ -104,6 +104,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     return out
 
 
+def _rows(value) -> list:
+    """Batch input as a list; None means no rows."""
+    return [] if value is None else list(value)
+
+
 def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
     """Apply events in order, routing each by its order_id.
 
@@ -122,7 +127,7 @@ def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
              for eid in (_history(o) or []) if _valid_id(eid)}
     skipped={"invalid_orders":invalid,"duplicate_order_ids":sorted(dupes,key=str),
              "unrouted_events":[],"cross_order_duplicates":[]}
-    for i,e in enumerate(events):
+    for i,e in enumerate(_rows(events)):
         oid=e.get("order_id") if isinstance(e,dict) else None
         if not (_valid_id(oid) and oid in by_id):
             skipped["unrouted_events"].append(i)
@@ -145,7 +150,7 @@ def awaiting_refund_csv(orders) -> str:
     buf=io.StringIO()
     writer=csv.writer(buf,lineterminator="\n")
     writer.writerow(AWAITING_REFUND_COLUMNS)
-    for o in sorted(orders,key=lambda o:str(o.get("order_id"))):
+    for o in sorted(_rows(orders),key=lambda o:str(o.get("order_id"))):
         due,paid=o.get("refund_due_paise",0),o.get("refunded_paise",0)
         if _is_paise(due) and _is_paise(paid) and due>paid:
             writer.writerow([o.get("order_id"),o.get("status"),due,paid,due-paid])
@@ -161,7 +166,7 @@ def _index_rows(rows: list) -> tuple[dict, list[int], set]:
     """Key rows by order_id; return the positions of rows that have no usable ID
     and the IDs that appear more than once."""
     keyed,invalid,dupes={},[],set()
-    for i,r in enumerate(rows):
+    for i,r in enumerate(_rows(rows)):
         if not (isinstance(r,dict) and _valid_id(r.get("order_id"))):
             invalid.append(i)
         elif r["order_id"] in keyed:
