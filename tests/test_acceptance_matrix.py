@@ -181,3 +181,179 @@ def test_input_order_is_not_mutated(kind):
     before = dict(order)
     apply_order_event(order, ev("E", kind))
     assert order == before
+
+def test_late_payment_after_cancellation_creates_refund_due():
+    order = new_order("O", 5000)
+
+    cancelled = apply_order_event(
+        order, ev("C1", "cancel_requested")
+    )
+
+    assert cancelled["status"] == "CANCELLED"
+
+    paid = apply_order_event(
+        cancelled, ev("P1", "payment_confirmed")
+    )
+
+    assert paid["status"] == "CANCELLED"
+    assert paid["payment_status"] == "PAID"
+    assert paid["refund_due_paise"] == 5000
+
+    refunded = apply_order_event(
+        paid,
+        ev("R1", "refund_processed", amount_paise=5000)
+    )
+
+    assert refunded["refunded_paise"] == 5000
+    assert refunded["payment_status"] == "REFUNDED"
+
+def test_unknown_event_is_not_recorded_as_processed():
+    order = new_order("O", 5000)
+
+    result = apply_order_event(
+        order,
+        ev("E1", "unknown_event")
+    )
+
+    assert result["status"] == "PLACED"
+    assert result["payment_status"] == "UNPAID"
+    assert result["processed_event_ids"] == []
+    assert order["processed_event_ids"] == []
+
+def test_duplicate_internal_order_ids_are_rejected():
+    records = [
+        {"order_id": "A", "amount_paise": 100, "status": "PLACED"},
+        {"order_id": "A", "amount_paise": 500, "status": "CANCELLED"},
+    ]
+
+    with pytest.raises(ValueError, match="Duplicate order_id"):
+        reconcile_orders(records, [])
+
+
+def test_duplicate_provider_order_ids_are_rejected():
+    records = [
+        {"order_id": "A", "amount_paise": 100, "status": "PLACED"},
+        {"order_id": "A", "amount_paise": 500, "status": "CANCELLED"},
+    ]
+
+    with pytest.raises(ValueError, match="Duplicate order_id"):
+        reconcile_orders([], records)
+
+@pytest.mark.parametrize("record", [
+    {"amount_paise": 5000, "status": "PLACED"},
+    {"order_id": None, "amount_paise": 5000, "status": "PLACED"},
+    {"order_id": "", "amount_paise": 5000, "status": "PLACED"},
+    {"order_id": "   ", "amount_paise": 5000, "status": "PLACED"},
+])
+def test_reconciliation_rejects_missing_or_invalid_order_ids(record):
+    with pytest.raises(ValueError, match="order_id"):
+        reconcile_orders([record], [])
+
+def test_missing_status_does_not_count_as_matched():
+    internal = [
+        {"order_id": "A", "amount_paise": 100}
+    ]
+
+    provider = [
+        {"order_id": "A", "amount_paise": 100}
+    ]
+
+    report = reconcile_orders(internal, provider)
+
+    assert report["status_mismatches"] == ["A"]
+    assert report["matched"] == []
+
+@pytest.mark.parametrize("bad_amount", [
+    None, "100", 100.0, True, -1, [], {}
+])
+def test_invalid_internal_amount_is_not_matched(bad_amount):
+    internal = [
+        {"order_id": "A", "amount_paise": bad_amount, "status": "PLACED"}
+    ]
+    provider = [
+        {"order_id": "A", "amount_paise": 100, "status": "PLACED"}
+    ]
+
+    report = reconcile_orders(internal, provider)
+
+    assert report["amount_mismatches"] == ["A"]
+    assert report["matched"] == []
+
+
+@pytest.mark.parametrize("bad_amount", [
+    None, "100", 100.0, True, -1, [], {}
+])
+def test_invalid_provider_amount_is_not_matched(bad_amount):
+    internal = [
+        {"order_id": "A", "amount_paise": 100, "status": "PLACED"}
+    ]
+    provider = [
+        {"order_id": "A", "amount_paise": bad_amount, "status": "PLACED"}
+    ]
+
+    report = reconcile_orders(internal, provider)
+
+    assert report["amount_mismatches"] == ["A"]
+    assert report["matched"] == []
+
+
+def test_missing_amounts_are_not_matched():
+    internal = [{"order_id": "A", "status": "PLACED"}]
+    provider = [{"order_id": "A", "status": "PLACED"}]
+
+    report = reconcile_orders(internal, provider)
+
+    assert report["amount_mismatches"] == ["A"]
+    assert report["matched"] == []
+
+@pytest.mark.parametrize("bad_event", [
+    None,
+    [],
+    "invalid",
+    123,
+])
+def test_non_dictionary_events_are_ignored(bad_event):
+    order = new_order("O", 5000)
+
+    result = apply_order_event(order, bad_event)
+
+    assert result == order
+    assert order["status"] == "PLACED"
+
+
+@pytest.mark.parametrize("bad_event", [
+    {"type": "payment_confirmed"},
+    {"event_id": "", "type": "payment_confirmed"},
+    {"event_id": "   ", "type": "payment_confirmed"},
+    {"event_id": 123, "type": "payment_confirmed"},
+    {"event_id": "E1"},
+    {"event_id": "E1", "type": None},
+])
+def test_missing_event_fields_are_ignored(bad_event):
+    order = new_order("O", 5000)
+
+    result = apply_order_event(order, bad_event)
+
+    assert result["status"] == "PLACED"
+    assert result["payment_status"] == "UNPAID"
+    assert result["processed_event_ids"] == []
+
+
+@pytest.mark.parametrize("bad_amount", [
+    None, 0, -1, 1.5, True, "500", [], {}
+])
+def test_invalid_refund_payload_is_not_recorded(bad_amount):
+    order = new_order("O", 5000, "CANCELLED")
+    order.update(
+        payment_status="PAID",
+        refund_due_paise=5000
+    )
+
+    result = apply_order_event(
+        order,
+        ev("R1", "refund_processed", amount_paise=bad_amount)
+    )
+
+    assert result["refunded_paise"] == 0
+    assert result["payment_status"] == "PAID"
+    assert result["processed_event_ids"] == []
