@@ -119,7 +119,7 @@ ASSUMPTIONS
 ## 5. Verification
 TESTS
 -Didn't change any of the existing tests.
--Added 14 new tests in tests/test_regressions.py for the cases I fixed, like repeated refunds, missing event IDs, partial refunds, payments after cancellation and the total_paise issue.
+-Added 74 new tests in tests/test_regressions.py for the cases I fixed, like repeated refunds, missing event IDs, partial refunds, payments after cancellation and the total_paise issue.
 
 TEST_RESULT
 -Baseline: 62 failed, 150 passed.
@@ -152,21 +152,13 @@ KNOWN LIMITATIONS
     -Also added a test that runs the whole dataset and checks no order is refunded more than it's due.
 
 ## 7. Follow-up fixes
-1.Weak "input not changed" test
-    -It used a shallow copy, so it missed changes to the event list. Added a deep-copy test.
-2.IDs checked with "if not id"
-    -0 was rejected; " ", True and lists were accepted or crashed. Now checked by type.
-3.One event ID refunded two orders
+-The most important:
+1.One event ID refunded two orders
     -apply_events now remembers which order used each ID.
-4.apply_events crashed on bad orders
-    -Bad and duplicate orders are reported; results are copies.
-5.Null or text amounts on an order
-    -Crashed refunds and the CSV; a decimal gave 101.5 paise. Now those refunds are ignored.
-6.processed_event_ids null or not a list
-    -Crashed. Null means no events; anything unreadable means the event is ignored.
-7.Order not a dict
-    -apply_order_event returns it unchanged.
-8.None instead of a list
-    -Treated as empty.
-9.apply_events result passed straight on
-    -Crashed the CSV. The dict is now accepted.
+2.Null or text amounts on an order
+    -Crashed refunds; a decimal gave 101.5 paise. Now those refunds are ignored.
+3.IDs checked with "if not id"
+    -0 was rejected; " " and True were accepted. Now checked by type.
+4.Weak "input not changed" test
+    -It used a shallow copy, so it missed changes. Added a deep-copy test.
+-Also fixed crashes on None, non-dict orders and bad processed_event_ids.
