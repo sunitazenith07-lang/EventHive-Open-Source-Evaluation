@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 420" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #1f2937; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; fill: #ffffff; text-anchor: middle; }
+      .sublabel { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 11px; fill: #4b5563; text-anchor: middle; }
+      .event-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-style: italic; fill: #6b7280; text-anchor: middle; }
+      .box { rx: 8; ry: 8; stroke-width: 2; }
+      .box-placed { fill: #3b82f6; stroke: #2563eb; }
+      .box-accepted { fill: #6366f1; stroke: #4f46e5; }
+      .box-dispatch { fill: #8b5cf6; stroke: #7c3aed; }
+      .box-delivered { fill: #10b981; stroke: #059669; }
+      .box-cancelled { fill: #ef4444; stroke: #dc2626; }
+      .box-rejected { fill: #f97316; stroke: #ea580c; }
+      .box-refunded { fill: #06b6d4; stroke: #0891b2; }
+      .arrow { stroke: #9ca3af; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .arrow-red { stroke: #f87171; stroke-width: 2; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrowhead-red); }
+      .arrow-green { stroke: #34d399; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#9ca3af" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#f87171" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#34d399" />
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="850" height="420" fill="#f9fafb" rx="12" stroke="#e5e7eb" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="30" y="38" class="title">OrderOps — Order State Lifecycle &amp; Refund Architecture</text>
+  <text x="30" y="58" class="sublabel" style="text-anchor: start;">Deterministic State Machine with Idempotent Transitions &amp; Bounded Refunds</text>
+
+  <!-- Standard Flow Nodes -->
+  <!-- PLACED -->
+  <rect x="50" y="100" width="130" height="50" class="box box-placed" />
+  <text x="115" y="130" class="label">PLACED</text>
+
+  <!-- ACCEPTED -->
+  <rect x="250" y="100" width="130" height="50" class="box box-accepted" />
+  <text x="315" y="130" class="label">ACCEPTED</text>
+
+  <!-- OUT_FOR_DELIVERY -->
+  <rect x="450" y="100" width="150" height="50" class="box box-dispatch" />
+  <text x="525" y="130" class="label">OUT_FOR_DELIVERY</text>
+
+  <!-- DELIVERED -->
+  <rect x="670" y="100" width="130" height="50" class="box box-delivered" />
+  <text x="735" y="130" class="label">DELIVERED</text>
+
+  <!-- Terminal / Exception Nodes -->
+  <!-- REJECTED -->
+  <rect x="50" y="240" width="130" height="50" class="box box-rejected" />
+  <text x="115" y="270" class="label">REJECTED</text>
+
+  <!-- CANCELLED -->
+  <rect x="250" y="240" width="130" height="50" class="box box-cancelled" />
+  <text x="315" y="270" class="label">CANCELLED</text>
+
+  <!-- REFUNDED -->
+  <rect x="150" y="340" width="130" height="50" class="box box-refunded" />
+  <text x="215" y="370" class="label">REFUNDED</text>
+
+  <!-- Standard Flow Arrows -->
+  <path d="M 180 125 L 242 125" class="arrow" />
+  <text x="213" y="117" class="event-text">accept</text>
+
+  <path d="M 380 125 L 442 125" class="arrow" />
+  <text x="413" y="117" class="event-text">dispatch</text>
+
+  <path d="M 600 125 L 662 125" class="arrow" />
+  <text x="633" y="117" class="event-text">deliver</text>
+
+  <!-- Rejection & Cancellation Arrows -->
+  <path d="M 115 150 L 115 232" class="arrow-red" />
+  <text x="145" y="195" class="event-text" style="fill:#ef4444;">reject</text>
+
+  <path d="M 285 150 L 285 232" class="arrow-red" />
+  <text x="315" y="195" class="event-text" style="fill:#ef4444;">cancel</text>
+
+  <path d="M 150 145 Q 230 185 260 234" class="arrow-red" />
+
+  <!-- Refund Arrows -->
+  <path d="M 115 290 L 160 334" class="arrow-green" />
+  <text x="110" y="325" class="event-text" style="fill:#059669;">paid refund</text>
+
+  <path d="M 315 290 L 270 334" class="arrow-green" />
+  <text x="320" y="325" class="event-text" style="fill:#059669;">paid refund</text>
+
+  <!-- Post Dispatch Block Note -->
+  <rect x="470" y="240" width="310" height="60" fill="#ffffff" rx="8" stroke="#d1d5db" stroke-width="1.5" />
+  <text x="485" y="265" class="sublabel" style="text-anchor:start; font-weight: bold; fill: #b91c1c;">🚫 Cancellation Blocked Post-Dispatch</text>
+  <text x="485" y="285" class="sublabel" style="text-anchor:start; fill: #4b5563;">Cancellation requested during OUT_FOR_DELIVERY</text>
+  <text x="485" y="300" class="sublabel" style="text-anchor:start; fill: #4b5563;">or DELIVERED is safely ignored without state change.</text>
+</svg>
