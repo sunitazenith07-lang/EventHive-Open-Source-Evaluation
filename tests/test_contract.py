@@ -1,3 +1,4 @@
+import pytest
 from models import new_order
 from service import apply_order_event, reconcile_orders
 
@@ -87,3 +88,124 @@ def test_reconcile_reports_status_difference():
 
 def test_empty_reconciliation():
     assert all(v==[] for v in reconcile_orders([],[]).values())
+
+
+# Regression: compare internal total_paise with provider amount_paise.
+def test_reconcile_internal_total_against_provider_amount():
+    internal = [
+        {"order_id": "A", "total_paise": 45900, "status": "PLACED"}
+    ]
+    provider = [
+        {"order_id": "A", "amount_paise": 45900, "status": "PLACED"}
+    ]
+
+    report = reconcile_orders(internal, provider)
+
+    assert report["matched"] == ["A"]
+    assert report["amount_mismatches"] == []
+    assert report["status_mismatches"] == []
+
+# Regression: events without IDs must not be mistaken for duplicates.
+def test_events_without_event_id_are_processed_independently():
+    order = new_order("A", 100)
+
+    after_payment = apply_order_event(
+        order, {"type": "payment_confirmed"}
+    )
+
+    after_acceptance = apply_order_event(
+        after_payment, {"type": "restaurant_accepted"}
+    )
+
+    assert after_acceptance["payment_status"] == "PAID"
+    assert after_acceptance["status"] == "ACCEPTED"
+    assert after_acceptance["processed_event_ids"] == []
+
+# Regression: an unidentifiable refund must not be processed.
+def test_refund_without_event_id_is_ignored():
+    order = new_order("A", 1000, "CANCELLED")
+    order.update(
+        payment_status="PAID",
+        refund_due_paise=1000
+    )
+
+    result = apply_order_event(
+        order,
+        {"type": "refund_processed", "amount_paise": 400}
+    )
+
+    assert result["refunded_paise"] == 0
+    assert result["payment_status"] == "PAID"
+    assert result["processed_event_ids"] == []
+
+# Regression: report amount and status differences for the same order.
+def test_reconcile_reports_both_amount_and_status_mismatches():
+    internal = [
+        {
+            "order_id": "ORD-105",
+            "total_paise": 15000,
+            "status": "DELIVERED",
+        }
+    ]
+
+    provider = [
+        {
+            "order_id": "ORD-105",
+            "amount_paise": 12000,
+            "status": "CANCELLED",
+        }
+    ]
+
+    result = reconcile_orders(internal, provider)
+
+    assert result["amount_mismatches"] == ["ORD-105"]
+    assert result["status_mismatches"] == ["ORD-105"]
+    assert result["matched"] == []
+
+# Regression: use the alternate amount field when the preferred field is None.
+def test_reconcile_falls_back_when_preferred_amount_is_none():
+    internal = [
+        {
+            "order_id": "ORD-106",
+            "total_paise": None,
+            "amount_paise": 15000,
+            "status": "PLACED",
+        }
+    ]
+
+    provider = [
+        {
+            "order_id": "ORD-106",
+            "amount_paise": 15000,
+            "status": "PLACED",
+        }
+    ]
+
+    result = reconcile_orders(internal, provider)
+
+    assert result["matched"] == ["ORD-106"]
+    assert result["amount_mismatches"] == []
+
+import pytest
+
+
+# Regression: duplicate IDs in internal records must be rejected.
+def test_reconcile_rejects_duplicate_internal_order_ids():
+    internal = [
+        {"order_id": "ORD-1", "total_paise": 1000, "status": "PLACED"},
+        {"order_id": "ORD-1", "total_paise": 2000, "status": "PLACED"},
+    ]
+
+    with pytest.raises(ValueError, match="Duplicate order_id in internal records"):
+        reconcile_orders(internal, [])
+
+
+# Regression: duplicate IDs in provider records must be rejected.
+def test_reconcile_rejects_duplicate_provider_order_ids():
+    provider = [
+        {"order_id": "ORD-1", "amount_paise": 1000, "status": "PLACED"},
+        {"order_id": "ORD-1", "amount_paise": 2000, "status": "PLACED"},
+    ]
+
+    with pytest.raises(ValueError, match="Duplicate order_id in provider records"):
+        reconcile_orders([], provider)
