@@ -4,7 +4,7 @@ This file is mandatory and worth 5 marks. Describe your actual experience honest
 
 ## 1. Challenge or confusing behaviour
 
-The challenge was deciding which order and payment states should allow a refund. Validating the amount was not enough on its own: the order also had to be in the right state.
+The challenge was a silent misclassification: an order whose internal and provider records had the same amount but different statuses was reported as `matched`. Nothing failed or raised an error, so the report looked correct unless the statuses were compared.
 
 ## 2. Evidence
 
@@ -16,37 +16,36 @@ The original test suite produced:
 
 The test that exposed the problem:
 
-- `test_refund_eligibility_matrix`
+- `test_reconciliation_status_mismatch_matrix`
 
-The matrix covers orders in different states, including `PLACED`, `ACCEPTED`, `OUT_FOR_DELIVERY`, `DELIVERED`, `REJECTED`, `CANCELLED` and `FAILED`, with different payment statuses.
+It showed that records with different statuses could appear in the `matched` list.
 
-[FILL IN: paste the failing matrix case or assertion output you saw, if you have it.]
+[FILL IN: paste the failing assertion output you saw for this test, if you have it.]
 
 ## 3. What I tried
 
-1. Ran `python -m pytest -q` and `pytest -x -vv` to see the eligibility failures.
-2. Examined the `refund_processed` branch of `apply_order_event()` in `service.py`.
-3. First added a check that the payment status is `PAID`.
-4. Re-ran the eligibility matrix. One case still failed: an order with order status `FAILED` and payment status `PAID` was still eligible.
-5. Added a check that the order status is `REJECTED` or `CANCELLED`.
-6. Re-ran the matrix: 12 cases passed.
+1. Ran `python -m pytest -q` and `pytest -x -vv` to see the reconciliation failures.
+2. Examined `reconcile_orders()` in `service.py`.
+3. Found that the code checked the amount and then classified the order as matched without comparing the status.
+4. Added a status comparison after the amount comparison, reporting differences under `status_mismatches`.
+5. Re-ran the reconciliation test and then the full suite.
 
 ## 4. Resolution
 
-- Root cause: the refund condition did not check the payment status or the order status, so refunds could be applied to orders that were not eligible.
-- What changed: the refund condition now also requires `payment_status == "PAID"` and `status in ("REJECTED", "CANCELLED")`.
-- Why it addresses the cause: refunds are now applied only to paid orders in the states that create a refund due.
+- Root cause: `reconcile_orders()` decided an order was matched after comparing only the amount.
+- What changed: a status comparison was added, so an order is `matched` only when both amount and status are equal.
+- Why it addresses the cause: orders with equal amounts but different statuses now go to `status_mismatches`.
 
 ## 5. Proof and regression prevention
 
-- Targeted refund eligibility matrix: 12 passed.
-- Full suite after this fix: [FILL IN]
+- Targeted reconciliation status mismatch test: [FILL IN]
+- Final full suite: 212 passed in 3.57 seconds.
 - No test files were modified.
 
 Related cases that could still break:
-- A refund event arriving after the order status changes.
-- Multiple partial refunds on an eligible order.
+- An order where both amount and status differ (only the amount mismatch is reported).
+- Records with a missing status or amount field, since the comparison uses `.get()`.
 
 ## 6. Unresolved challenge or next step
 
-Reconciliation status mismatch is not fixed at this commit and is handled in the next commit. An ineligible refund event is ignored, but its event ID is still recorded as processed; whether that is the intended behaviour was not investigated.
+When both amount and status differ for the same order, the `if`/`elif` structure records only the amount mismatch. A next step is to decide whether reconciliation should report both, and to write a focused test for that case before changing the code.

@@ -4,40 +4,35 @@ Document optimizations you considered or implemented. Do not claim a speedup or 
 
 ## 1. Baseline and objective
 
-The objective was correctness, not speed. Refunds could be applied to orders that were not eligible.
+The objective was correctness, not speed. Reconciliation could report orders as matched when their statuses differed.
 
-The original test suite produced 62 failures and 150 passes, and `test_refund_eligibility_matrix` was among the failing tests. No performance benchmark was conducted.
+The original test suite produced 62 failures and 150 passes, and `test_reconciliation_status_mismatch_matrix` was among the failing tests. No performance benchmark was conducted.
 
 ## 2. Options considered
 
-**Option 1: Check only the payment status**
-- Expected benefit: Small change that stops refunds on unpaid orders.
-- Risk: Does not stop refunds on paid orders in the wrong state.
-- Decision: Rejected. The eligibility matrix still had a failing case (`FAILED` order with `PAID` payment status).
-
-**Option 2: Check both payment status and order status in the existing condition (chosen)**
-- Expected benefit: Covers both unpaid orders and paid orders in ineligible states with a small change.
-- Risk: The allowed statuses are hard-coded, so they must stay consistent with the business rules.
+**Option 1: Add an `elif` status comparison after the amount comparison (chosen)**
+- Expected benefit: Fixes the misclassification with a small change and uses the existing `status_mismatches` category.
+- Risk: If both amount and status differ, only the amount mismatch is reported.
 - Decision: Accepted.
 
-**Option 3: Move the eligibility rules into a helper function**
-- Expected benefit: Easier to read and reuse.
-- Risk: Adds a function and indirection for a single use.
-- Decision: Rejected for now.
+**Option 2: Check amount and status independently**
+- Expected benefit: An order with both differences would appear in both lists, giving a fuller report.
+- Risk: One order could appear in more than one category, which changes the report structure and may conflict with what the tests expect.
+- Decision: Rejected for this bug; left as a possible future improvement.
 
 No alternative implementation was formally benchmarked.
 
 ## 3. Changes implemented
 
-- Change: Added payment status (`PAID`) and order status (`REJECTED` or `CANCELLED`) checks to the refund condition.
-  - Reason: Restrict refund processing to eligible paid orders.
-  - Tests used: `test_refund_eligibility_matrix`.
+- Change: Added a status comparison to `reconcile_orders()` between the amount check and the `matched` case.
+  - Reason: Report orders with different statuses under `status_mismatches` instead of `matched`.
+  - Tests used: `test_reconciliation_status_mismatch_matrix`.
   - Measurement method and result: No performance measurement conducted.
 
 ## 4. Trade-offs
 
-- The condition is now long. It is readable, but adding more rules may justify a helper function.
-- Hard-coded statuses are strict: if the business later allows refunds in other states, this condition must be updated.
+- The `if`/`elif`/`else` structure is simple and puts each order in exactly one category, but hides a status difference when the amount also differs.
+- Reusing the existing report categories avoids changing the report format.
 - No refactoring was performed.
 
 Correctness and maintainability were prioritised over unnecessary complexity.
@@ -46,10 +41,10 @@ Correctness and maintainability were prioritised over unnecessary complexity.
 
 With more time, I would:
 
-1. Move the refund rules (amount, balance and eligibility) into one helper function if more rules are added.
-2. Add tests for several partial refunds on an eligible order.
-3. Check whether an ineligible refund should still record its event ID as processed.
+1. Decide whether orders with both an amount and a status difference should be reported in both categories, and add a test for that case first.
+2. Add tests for records with missing amount or status fields.
+3. Benchmark reconciliation with larger synthetic datasets before making any performance-related change.
 
-These would be validated with regression tests.
+These would be validated with regression tests and, for performance, repeatable measurements against a defined baseline.
 
 If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
