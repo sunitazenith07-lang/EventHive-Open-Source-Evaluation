@@ -4,44 +4,33 @@ Document optimizations you considered or implemented. Do not claim a speedup or 
 
 ## 1. Baseline and objective
 - What needed improvement:
-  - Correctness and idempotency: duplicate events were traversing the entire conditional branch chain and appending redundant IDs.
-  - Runtime execution of full test suite: baseline test suite was taking ~2.61s for 212 tests.
-  - Data safety: ensuring zero mutation of input objects (`test_input_order_is_not_mutated`) while keeping memory allocations reasonable.
+  - Replayed events were running through all the transition checks instead of returning early.
+  - Test run took 2.61s initially.
+  - Ensuring the input dictionary isn't mutated without making unnecessary copies.
 - What evidence suggested there was room to improve:
-  - Re-executing full logic on already-processed events wasted CPU cycles.
-  - Test suite runtime showed significant variance during re-runs.
+  - Duplicate events were doing full processing and appending repeated IDs.
 
 ## 2. Options considered
-1. **Short-circuit idempotency check (Implemented)**:
-   - Check `event_id in out["processed_event_ids"]` immediately after deepcopy. If present, return `out` immediately without evaluating any business rules.
-   - Expected benefit: Eliminates unnecessary state evaluation and avoids state corruption.
-2. **`type(x) is int` vs `isinstance(x, int)` and `not isinstance(x, bool)` (Implemented)**:
-   - Using `type(amount) is int` performs a single, direct type pointer comparison in CPython rather than two `isinstance` attribute lookups.
-   - Expected benefit: Faster execution and concise, unambiguous code that rejects booleans naturally.
-3. **Set-based deduplication for `processed_event_ids` (Rejected)**:
-   - Replacing the `list` of `processed_event_ids` with a Python `set`.
-   - Reason for rejection: Contract tests (`assert second["processed_event_ids"] == ["e1"]`) and audit logs expect order preservation and JSON serializability. Converting back and forth between set and list adds overhead and changes the serialization contract.
-4. **Mutating input in-place without `deepcopy` (Rejected)**:
-   - Reason for rejection: Directly violates caller contract and fails `test_input_order_is_not_mutated`. Functional isolation is non-negotiable in financial and order state workflows.
+- Early return for duplicate events: Check `event_id in out["processed_event_ids"]` at the start of `apply_order_event` and return immediately. Implemented.
+- Using `type(x) is int` instead of `isinstance`: Direct check that avoids boolean values and is slightly faster. Implemented.
+- Using a set for `processed_event_ids`: Considered for faster lookups, but rejected because the tests verify list order, and orders only have a few events anyway.
+- In-place mutation: Considered removing `deepcopy`, but rejected because tests require the original input to stay unchanged.
 
 ## 3. Changes implemented
-- Change 1: Early return guard for replayed events:
+- Added early return in `apply_order_event`:
   ```python
   if event_id is not None and event_id in out["processed_event_ids"]:
       return out
   ```
-- Change 2: Fast type check `type(amount) is int` combined with range guard `0 < amount <= remaining_due`.
-- Change 3: Single-pass reconciliation loop iterating over sorted union keys `set(left) | set(right)` with $O(1)$ dict lookups for internal and provider records.
-- Measurement method and result:
-  - Baseline execution time: `2.61s` for 212 tests.
-  - Post-optimization execution time: `0.79s` for 221 tests (over 3x speedup in pytest execution while running 9 additional regression tests).
+- Combined refund validation into one check: `type(amount) is int and amount > 0 and amount <= remaining_due`.
+- Built lookup dicts once in `reconcile_orders` and looped over sorted keys.
+- Measured result:
+  - Baseline: 2.61s for 212 tests.
+  - After changes: 0.59s for 221 tests.
 
 ## 4. Trade-offs
-- Immutability vs Speed:
-  - Using `deepcopy` incurs allocation overhead on every event. However, for food-delivery financial events, state purity and side-effect prevention far outweigh microsecond gains.
-- List vs Hash Set for processed events:
-  - Storing `processed_event_ids` as a list has $O(N)$ membership check overhead in theory, but in practice individual orders have fewer than 10 events across their lifetime. The $O(N)$ lookup on tiny lists is faster than the hashing and set allocation overhead, and retains chronological event order.
+- `deepcopy` has a small memory cost, but it guarantees callers don't have their data mutated.
+- Storing event IDs in a list instead of a set keeps the event order preserved for tests and debugging.
 
 ## 5. Further improvements
-- Batch event processing: If processing millions of historical events, vectorize or batch updates using an event store backed by an indexed SQL database rather than in-memory dictionaries.
-- Streaming reconciliation: For real-time operations, process reconciliation continuously using Kafka/Event Streams rather than offline batch comparisons.
+- For large scale, processing events through a message queue (like Kafka) and storing state in a database with transactions rather than in-memory dicts.
