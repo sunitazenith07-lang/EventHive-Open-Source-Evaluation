@@ -3,10 +3,9 @@
 ## Test command and environment
 
 - Python version: 3.14.5
-- Dependency setup: `python -m pip install -r requirements-dev.txt` — completed; pytest 9.2.0 installed.
+- Dependency setup: `python -m pip install -r requirements-dev.txt` — completed; pytest 8.4.2 installed.
 - Test command: `python -m pytest -q`
-- Actual result after changes: **214 passed, 1 warning in 0.56s**.
-- Warning: `PytestRemovedIn10Warning` from the installed `anyio` pytest plugin (`CallSpec2` renamed to `CallSpec`).
+- Actual latest result: **219 passed in 0.58s**, no warnings.
 - The baseline before service changes was 62 failed, 150 passed, 1 warning. The initial test attempt before installing pytest did not run (`No module named pytest`).
 
 ## Edge-case evidence
@@ -21,15 +20,20 @@
 | 6 | Internal/provider rows have equal amount but different statuses | Report status mismatch and do not call it matched | Pass | `test_reconcile_reports_status_difference`; `test_reconciliation_status_mismatch_matrix` |
 | 7 | Event is missing its ID/type or has a list as its type | Leave order unchanged | Pass | `test_missing_or_malformed_event_fields_do_not_change_order` |
 | 8 | Reconcile empty inputs | Return all report lists empty | Pass | `test_empty_reconciliation` |
+| 9 | Two partial refunds total exactly the due | Keep payment `PAID` after the first; set `REFUNDED` after the second | Pass | `test_two_partial_refunds_mark_refunded_only_at_full_due` |
+| 10 | Second refund is one paise above remaining due | Do not apply the second refund | Pass | `test_refund_cannot_exceed_remaining_due_after_partial_refund` |
+| 11 | Boolean `True` supplied as refund amount | Do not treat it as integer paise | Pass | `test_boolean_is_not_accepted_as_refund_amount` |
+| 12 | Event has an empty event ID | Leave order unchanged and do not record the event | Pass | `test_empty_event_id_does_not_change_or_record_event` |
+| 13 | Same record has amount and status mismatches | Report both mismatch categories and do not mark as matched | Pass | `test_reconciliation_reports_amount_and_status_mismatches_together` |
 
 ## Regression tests added
 
 - `test_duplicate_refund_event_is_idempotent` guards against applying a repeated refund notification twice.
 - `test_missing_or_malformed_event_fields_do_not_change_order` covers absent identifiers/types and an invalid unhashable event type.
+- `tests/test_edge_cases.py` adds five focused tests for partial-refund completion, remaining-due limits, boolean amount rejection, empty event IDs, and simultaneous reconciliation mismatches.
 
 ## Remaining failures or limitations
 
 - No test failures remain in the local Python 3.14.5 run.
 - CI is configured for Python 3.11; that runtime was not available for a local run.
-- The installed `anyio` pytest plugin emits one deprecation warning.
 - The service remains an in-memory simulation without persistence or real payment-provider integration.

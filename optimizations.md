@@ -14,7 +14,7 @@ The evidence pointed to correctness and predictable classification as the priori
 ## 3. Changes implemented
 
 - I implemented correctness safeguards, not performance optimizations: event replay checks, pre-mutation refund validation, and status-aware reconciliation.
-- I added two regression tests; the existing suite plus new tests reports **214 passed, 1 warning in 0.56s**.
+- I added regression tests, including five focused edge cases; the latest full suite reports **219 passed in 0.58s**, with no warnings.
 - No benchmark or profiler was run. The test duration is not a before/after performance measurement, and I make no speedup or memory-reduction claim.
 
 ## 4. Trade-offs
