@@ -4,9 +4,8 @@ Complete this file in your own words. Be concise and specific to the work you ac
 
 ## 1. Baseline
 - Commands run before editing: `python -m pytest -q`
-- Original test result before any fix: 62 failed, 150 passed (212 tests total).
-- Result at the start of this commit (after the duplicate-event, refund-validation and refund-eligibility fixes): [FILL IN: full-suite summary line from commit 3]
-- Demo/output observed after this fix using `python -m main`:
+- Initial test result: 62 failed, 150 passed (212 tests).
+- Demo output: not recorded before editing. After the fixes, `python -m main` printed:
   ```text
   matched: []
   missing_from_provider: ['ORD-103']
@@ -16,60 +15,48 @@ Complete this file in your own words. Be concise and specific to the work you ac
   ```
 
 ## 2. Codebase understanding
-- Important files and functions inspected:
-  - `service.py`: `reconcile_orders()`.
-  - `fixtures.py`: synthetic internal and provider order records.
-  - `main.py`: runs the demo and prints the reconciliation report.
-  - Relevant tests in `tests/test_acceptance_matrix.py` and `tests/test_contract.py`.
-- Order lifecycle or data flow traced:
-  - `reconcile_orders()` compares internal and provider order records using `order_id`.
-  - Each order ends up in one report category: `matched`, `missing_from_provider`, `missing_from_internal`, `amount_mismatches` or `status_mismatches`.
-- How understanding was confirmed:
-  - Inspected `reconcile_orders()` and the report categories.
-  - Read the reconciliation status mismatch test to see which records must be reported as status mismatches.
-  - Ran the test after the change and then the full suite.
+- Files inspected: `service.py` (`apply_order_event()`, `reconcile_orders()`), `models.py` (`new_order()`), `fixtures.py`, `main.py`, and the tests in `tests/test_acceptance_matrix.py` and `tests/test_contract.py`.
+- Data flow traced:
+  - An order has `order_id`, `total_paise`, `status`, `payment_status`, `refund_due_paise`, `refunded_paise` and `processed_event_ids`.
+  - `apply_order_event()` deep-copies the order, applies one event and returns the copy.
+  - `reconcile_orders()` matches internal and provider records by `order_id` and puts each order in one report category.
+- Confirmed by reading the failing tests, running targeted tests, then running the full suite after each fix.
 
 ## 3. Investigation and implementation strategy
-
-- Issue 4: Reconciliation status mismatches.
-  - Symptom: Orders with matching amounts but different statuses could be reported as matched.
-  - Investigation: Examined the comparison logic in `reconcile_orders()` and `test_reconciliation_status_mismatch_matrix`. The code compared only the amount before putting an order in `matched`.
-  - Fix: Compare the status after the amount, and put an order in `matched` only when both are equal:
-    ```python
-    if a.get("amount_paise") != b.get("amount_paise"):
-        report["amount_mismatches"].append(key)
-
-    elif a.get("status") != b.get("status"):
-        report["status_mismatches"].append(key)
-
-    else:
-        report["matched"].append(key)
-    ```
-  - Evidence: [FILL IN: targeted run of `test_reconciliation_status_mismatch_matrix`]. Final full suite: 212 passed in 3.57 seconds.
+- **Issue 1: duplicate events.**
+  - Symptom/hypothesis: a replayed event applied twice because event IDs were never checked.
+  - Fix: `if event_id in out["processed_event_ids"]: return out`
+  - Evidence: `test_payment_event_replay_idempotent`, 20 passed in a targeted run.
+- **Issue 2: invalid and excessive refunds.**
+  - Symptom/hypothesis: the amount was added without validation. Type and sign checks were not enough; the remaining balance also had to be checked.
+  - Fix: require an `int`, not a `bool`, greater than 0, and no more than `refund_due_paise - refunded_paise`.
+  - Evidence: `test_invalid_refund_amounts_are_ignored`, `test_refunds_cannot_exceed_due`.
+- **Issue 3: refund eligibility.**
+  - Symptom/hypothesis: payment status alone is not enough; a paid order can still be delivered or failed.
+  - Fix: require `payment_status == "PAID"` and `status in ("REJECTED", "CANCELLED")`.
+  - Evidence: `test_refund_eligibility_matrix`, 12 passed in a targeted run.
+- **Issue 4: reconciliation status mismatches.**
+  - Symptom/hypothesis: only the amount was compared before an order was marked `matched`.
+  - Fix: add `elif a.get("status") != b.get("status")` and report it under `status_mismatches`.
+  - Evidence: `test_reconciliation_status_mismatch_matrix` and new reconciliation tests.
 
 ## 4. Implementation decisions
-- Main changes and why:
-  - Added a status comparison between the amount check and the `matched` case, so a status difference is no longer hidden.
-  - Used the existing `status_mismatches` report category instead of adding a new one.
-- Alternatives considered and why rejected:
-  - Reporting amount and status mismatches independently (so an order with both differences appears in both lists) was not chosen; the existing report structure uses one category per order.
-  - No alternative implementation was formally benchmarked.
-- Assumptions:
-  - Reconciliation uses `order_id` to match internal and provider records.
-  - Each order should appear in exactly one report category.
-  - If both amount and status differ, reporting the amount mismatch is acceptable.
+- Main changes: small conditions inside the existing functions, reusing the existing report categories.
+- Alternatives rejected: helper functions or a refactor (not needed for four small checks); reporting both mismatch types for one order (it would put one order in two categories). Nothing was benchmarked.
+- Assumptions: event IDs identify events processed once; refund amounts are integer paise; only paid `REJECTED`/`CANCELLED` orders are refundable; reconciliation matches by `order_id`.
 
 ## 5. Verification
-- Tests added or changed: No test files were modified. Existing tests were used as regression checks.
-- Commands run and actual results:
-  - Targeted reconciliation status mismatch test: [FILL IN]
-  - Final `python -m pytest -q`: 212 passed in 3.57 seconds.
-  - `python -m main`: ran and displayed the report shown in the baseline section.
-- Edge cases verified: [FILL IN after running; see TESTING.md]
-- Remaining failures or known limitations:
-  - If both amount and status differ for the same order, only the amount mismatch is recorded because of the `if`/`elif` structure.
-  - The demo output has an empty `status_mismatches` list, so it does not exercise the new branch; the test is the evidence for this fix.
-  - An ignored (invalid or ineligible) refund event still has its event ID appended to `processed_event_ids` because the append runs for every event. This was read from the code and was not tested.
-  - The demo output should be checked against the exact records passed by `main.py` before drawing conclusions about individual fixture mismatches.
+- Tests added: `tests/test_my_regressions.py` with 14 tests. No existing test file was modified.
+- Commands and results:
+  - Initial `python -m pytest -q`: 62 failed, 150 passed.
+  - Targeted idempotency tests: 20 passed. Refund eligibility matrix: 12 passed.
+  - After adding my first 6 tests: 4 failed, 214 passed (wrong event key in my test helper, see `challenges.md`).
+  - Final `python -m pytest -q`: 226 passed.
+- Edge cases verified: replayed event, invalid and excessive refunds, partial then full refund, ineligible states, cancel after dispatch, reconciliation amount/status cases. See `TESTING.md`.
+- Limitations:
+  - If both amount and status differ, only the amount mismatch is recorded (`if`/`elif`).
+  - An event with no `event_id` is treated as a duplicate of any earlier event with no ID.
+  - An ignored refund still records its event ID.
+  - The demo has an empty `status_mismatches`, so only the tests exercise that branch.
 
 Record actual engineering decisions and evidence. Do not claim tests or experiments you did not run.
