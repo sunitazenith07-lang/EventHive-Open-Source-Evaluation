@@ -16,6 +16,9 @@ def apply_order_event(order: dict, event: dict) -> dict:
     event_id=event.get("event_id")
     kind=event.get("type")
 
+    if event_id in out["processed_event_ids"]:
+        return out 
+
     # Deliberate starter defects: duplicate and invalid refund events are not
     # fully protected, and some transitions need tighter validation.
     if kind=="payment_confirmed":
@@ -34,15 +37,24 @@ def apply_order_event(order: dict, event: dict) -> dict:
         out["status"]="OUT_FOR_DELIVERY"
     elif kind=="order_delivered" and out.get("status")=="OUT_FOR_DELIVERY":
         out["status"]="DELIVERED"
-    elif kind=="refund_processed":
-        # Bug to find: validate eligibility, positive amount and maximum refund.
-        out["refunded_paise"] += event.get("amount_paise",0)
-        if out["refunded_paise"] >= out.get("refund_due_paise",0):
-            out["payment_status"]="REFUNDED"
+    elif kind == "refund_processed":
+        amount = event.get("amount_paise")
+# Bug to find: validate eligibility, positive amount and maximum refund
+        if (
+            isinstance(amount, int)
+            and not isinstance(amount, bool)
+            and amount > 0
+            and amount <= out["refund_due_paise"] - out["refunded_paise"]
+            and out["payment_status"] == "PAID"
+            and out["status"] in ("REJECTED", "CANCELLED")
+        ):
+            out["refunded_paise"] += amount
+
+            if out["refunded_paise"] >= out.get("refund_due_paise", 0):
+                out["payment_status"] = "REFUNDED"
 
     out["processed_event_ids"].append(event_id)
     return out
-
 
 def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     """Compare transaction summaries keyed by order_id."""
@@ -59,7 +71,10 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
             a,b=left[key],right[key]
             if a.get("amount_paise") != b.get("amount_paise"):
                 report["amount_mismatches"].append(key)
-            # Deliberate starter defect: mismatched statuses may be called matched.
+
+            elif a.get("status") != b.get("status"):
+                report["status_mismatches"].append(key)
+       # Deliberate starter defect: mismatched statuses may be called matched.
             else:
                 report["matched"].append(key)
     return report
