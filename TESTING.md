@@ -6,25 +6,29 @@ Complete this file with test evidence from your own work. Include at least five 
 - Python version: 3.13.7
 - pytest version: 9.2.0
 - Command run: `python -m pytest -q`
-- Initial test summary: 62 failed, 150 passed.
-- Summary after this fix only: [FILL IN: run `python -m pytest -q` and paste the summary line]
+- Initial test summary (before any fix): 62 failed, 150 passed.
+- Summary after this fix: [FILL IN: run `python -m pytest -q` and paste the summary line]
 
 ## Edge-case evidence
 
 | # | Case / input | Expected behaviour | Actual result | Test name or evidence |
 |---|---|---|---|---|
-| 1 | Replay an already processed event using the same event ID. | The event is not applied twice, and its ID appears only once in `processed_event_ids`. | Targeted idempotency run: 20 passed, 180 deselected. | `test_payment_event_replay_idempotent` |
-| 2 | [FILL IN: e.g. replay a refund event with the same ID] | [FILL IN] | [RUN AND FILL IN] | [test name or command] |
-| 3 | [FILL IN: e.g. replay a status-change event such as rejection] | [FILL IN] | [RUN AND FILL IN] | [test name or command] |
-| 4 | [FILL IN: e.g. two different event IDs of the same type] | [FILL IN] | [RUN AND FILL IN] | [test name or command] |
-| 5 | [FILL IN: e.g. event with no event ID] | [FILL IN] | [RUN AND FILL IN] | [test name or command] |
+| 1 | Refund amount is zero or negative. | Ignored; `refunded_paise` does not change. | [RUN AND FILL IN] | `test_invalid_refund_amounts_are_ignored` |
+| 2 | Refund amount is a boolean (`True`/`False`). | Ignored, even though `bool` is a subclass of `int`. | [RUN AND FILL IN] | `test_invalid_refund_amounts_are_ignored` |
+| 3 | Refund amount is a string, list, dictionary or decimal. | Ignored; `refunded_paise` does not change. | [RUN AND FILL IN] | `test_invalid_refund_amounts_are_ignored` |
+| 4 | Refund amount is greater than the remaining refund due. | Ignored; total refunded never exceeds the refund due. | [RUN AND FILL IN] | `test_refunds_cannot_exceed_due` |
+| 5 | Partial refund followed by the remaining amount. | Partial refund does not change payment status to `REFUNDED`; completing the due amount does. | [RUN AND FILL IN] | `test_valid_partial_and_full_refunds` |
 
 ## Regression tests added
 
-No new test files or test cases were added. The existing test `test_payment_event_replay_idempotent` was used as the regression check for the duplicate event processing bug.
+No new test files or test cases were added. These existing tests were used as regression checks for the refund validation bug:
+
+- `test_invalid_refund_amounts_are_ignored`
+- `test_valid_partial_and_full_refunds`
+- `test_refunds_cannot_exceed_due`
 
 ## Remaining failures or limitations
 
-- Only the duplicate event bug is fixed at this commit. Other tests that cover refund validation, refund eligibility and reconciliation are still expected to fail.
+- Refund eligibility (payment status and order status) and reconciliation status mismatch are not fixed at this commit, so related tests may still fail.
 - No test files were modified.
-- Behaviour for events with a missing or reused event ID was not tested.  
+- An ignored invalid refund event still has its event ID appended to `processed_event_ids`; this was read from the code and was not tested.
