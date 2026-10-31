@@ -35,6 +35,23 @@ def test_duplicate_event_is_idempotent():
     assert second["processed_event_ids"]==["e1"]
 
 
+def test_duplicate_refund_event_is_idempotent():
+    order=new_order("O1",1000,"CANCELLED")
+    order.update(payment_status="PAID",refund_due_paise=1000)
+    e=event("r1","refund_processed",amount_paise=400)
+    first=apply_order_event(order,e)
+    second=apply_order_event(first,e)
+    assert second["refunded_paise"]==400
+    assert second["payment_status"]=="PAID"
+    assert second["processed_event_ids"]==["r1"]
+
+
+def test_missing_or_malformed_event_fields_do_not_change_order():
+    order=new_order("O1",1000)
+    for e in [{}, {"event_id":"e1","type":[]}, {"type":"payment_confirmed"}]:
+        assert apply_order_event(order,e)==order
+
+
 def test_refund_requires_eligible_order():
     out=apply_order_event(new_order("O1",1000),event("r1","refund_processed",amount_paise=500))
     assert out["refunded_paise"]==0
