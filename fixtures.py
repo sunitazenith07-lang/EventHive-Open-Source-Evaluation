@@ -11,3 +11,10 @@ def sample_provider_orders():
     return [{"order_id":"ORD-101","amount_paise":45900,"status":"PLACED"},
             {"order_id":"ORD-102","amount_paise":129900,"status":"CANCELLED"},
             {"order_id":"ORD-104","amount_paise":19900,"status":"DELIVERED"}]
+
+
+def sample_events():
+    return [{"event_id":"EV-1","order_id":"ORD-101","type":"payment_confirmed"},
+            {"event_id":"EV-2","order_id":"ORD-101","type":"restaurant_rejected"},
+            {"event_id":"EV-3","order_id":"ORD-101","type":"refund_processed","amount_paise":20000},
+            {"event_id":"EV-3","order_id":"ORD-101","type":"refund_processed","amount_paise":20000}]
