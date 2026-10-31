@@ -57,6 +57,8 @@ def apply_order_event(order: dict, event: dict) -> dict:
     refunded_paise, processed_event_ids.
     """
     out=deepcopy(order)
+    if not isinstance(out,dict):
+        return out
     out.setdefault("payment_status","UNPAID")
     out.setdefault("refund_due_paise",0)
     out.setdefault("refunded_paise",0)

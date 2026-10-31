@@ -388,3 +388,11 @@ def test_apply_events_with_null_event_history():
     order["processed_event_ids"]=None
     result,_=apply_events([order],[{"event_id":"p1","order_id":"O1","type":"payment_confirmed"}])
     assert result["O1"]["payment_status"]=="PAID"
+
+
+# Follow-up 7: calling apply_order_event directly with something that is not
+# an order crashed with AttributeError on setdefault.
+
+@pytest.mark.parametrize("bad",[None,"O1",[],42])
+def test_non_dict_order_is_returned_unchanged(bad):
+    assert apply_order_event(bad,event("p1","payment_confirmed"))==bad
