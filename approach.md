@@ -31,7 +31,7 @@
 ## 5. Verification
 
 - I added regression tests in `tests/test_contract.py` for refund replay and missing/malformed event fields. I did not remove, skip, weaken, or edit existing tests.
-- `python -m pytest -q` — after the service cleanup and five additional edge-case tests, **219 passed in 0.58s** on Python 3.14.5 with no warnings.
+- `python -m pytest -q` — after service cleanup and eight additional edge-case tests, **222 passed in 1.19s** on Python 3.14.5 with no warnings.
 - `requirements-dev.txt` now limits pytest to versions below 9; the warning seen in the initial post-fix run no longer appears with the installed pytest 8.4.2.
 - `python -m main` completed and reported `status_mismatches: ['ORD-102']`, along with the expected fixture missing-side and amount-mismatch categories.
 - I ran a payment → acceptance → cancellation → full refund sequence. The observed states were `PLACED/PAID`, `ACCEPTED/PAID`, `CANCELLED/PAID` with 1000 paise due and zero refunded, then `CANCELLED/REFUNDED` with 1000 paise refunded.

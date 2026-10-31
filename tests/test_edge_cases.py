@@ -60,6 +60,46 @@ def test_empty_event_id_does_not_change_or_record_event():
     assert result == order
 
 
+def test_non_dictionary_event_does_not_change_order():
+    order = new_order("EDGE-6", 1000)
+
+    for malformed_event in (None, [], "payment_confirmed"):
+        assert apply_order_event(order, malformed_event) == order
+
+
+def test_invalid_processed_event_id_collection_does_not_raise():
+    order = new_order("EDGE-8", 1000)
+    order["processed_event_ids"] = None
+
+    result = apply_order_event(
+        order, event("payment-1", "payment_confirmed")
+    )
+
+    assert result == order
+
+
+def test_reconciliation_skips_non_dictionary_and_missing_id_records():
+    report = reconcile_orders(
+        [
+            None,
+            {},
+            {"order_id": None},
+            {"order_id": []},
+            {"order_id": ""},
+            {"order_id": "EDGE-7", "status": "PLACED", "amount_paise": 1000},
+        ],
+        [[], {"order_id": "EDGE-7", "status": "PLACED", "amount_paise": 1000}],
+    )
+
+    assert report == {
+        "matched": ["EDGE-7"],
+        "missing_from_provider": [],
+        "missing_from_internal": [],
+        "amount_mismatches": [],
+        "status_mismatches": [],
+    }
+
+
 def test_reconciliation_reports_amount_and_status_mismatches_together():
     report = reconcile_orders(
         [{"order_id": "EDGE-5", "amount_paise": 1000, "status": "CANCELLED"}],

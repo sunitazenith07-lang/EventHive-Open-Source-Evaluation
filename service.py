@@ -53,6 +53,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
     updated.setdefault("refunded_paise", 0)
     updated.setdefault("processed_event_ids", [])
 
+    if not isinstance(updated["processed_event_ids"], list):
+        return updated
+    if not isinstance(event, dict):
+        return updated
+
     event_id = event.get("event_id")
     event_type = event.get("type")
     if (
@@ -95,12 +100,16 @@ def reconcile_orders(internal: list[dict], provider: list[dict]) -> dict:
     internal_by_id = {
         record["order_id"]: record
         for record in internal
-        if record.get("order_id") is not None
+        if isinstance(record, dict)
+        and isinstance(record.get("order_id"), str)
+        and record["order_id"]
     }
     provider_by_id = {
         record["order_id"]: record
         for record in provider
-        if record.get("order_id") is not None
+        if isinstance(record, dict)
+        and isinstance(record.get("order_id"), str)
+        and record["order_id"]
     }
 
     report = {

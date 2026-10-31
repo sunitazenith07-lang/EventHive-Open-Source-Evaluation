@@ -29,7 +29,7 @@ Replay protection now returns the copied order when an event ID has already been
 - Existing replay, refund-eligibility, invalid-amount, cumulative-bound, and reconciliation mismatch matrices now pass.
 - New `test_duplicate_refund_event_is_idempotent` verifies repeated delivery of the same refund event does not increase `refunded_paise` twice.
 - New `test_missing_or_malformed_event_fields_do_not_change_order` verifies absent event fields and an unhashable invalid type do not change the order.
-- Full result after adding five more edge-case tests and cleaning up `service.py`: `python -m pytest -q` — **219 passed in 0.58s**, with no warnings.
+- Full result after adding eight additional edge-case tests and cleaning up `service.py`: `python -m pytest -q` — **222 passed in 1.19s**, with no warnings.
 - Demo verification: `python -m main` reports ORD-102 in `status_mismatches`.
 
 ## 6. Unresolved challenge or next step

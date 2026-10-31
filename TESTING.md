@@ -5,7 +5,7 @@
 - Python version: 3.14.5
 - Dependency setup: `python -m pip install -r requirements-dev.txt` — completed; pytest 8.4.2 installed.
 - Test command: `python -m pytest -q`
-- Actual latest result: **219 passed in 0.58s**, no warnings.
+- Actual latest result: **222 passed in 1.19s**, no warnings.
 - The baseline before service changes was 62 failed, 150 passed, 1 warning. The initial test attempt before installing pytest did not run (`No module named pytest`).
 
 ## Edge-case evidence
@@ -25,12 +25,16 @@
 | 11 | Boolean `True` supplied as refund amount | Do not treat it as integer paise | Pass | `test_boolean_is_not_accepted_as_refund_amount` |
 | 12 | Event has an empty event ID | Leave order unchanged and do not record the event | Pass | `test_empty_event_id_does_not_change_or_record_event` |
 | 13 | Same record has amount and status mismatches | Report both mismatch categories and do not mark as matched | Pass | `test_reconciliation_reports_amount_and_status_mismatches_together` |
+| 14 | Event payload is `None`, a list, or a string | Leave order unchanged | Pass | `test_non_dictionary_event_does_not_change_order` |
+| 15 | Reconciliation input contains non-dictionary rows or rows with missing/null IDs | Ignore unkeyable rows and compare valid IDs | Pass | `test_reconciliation_skips_non_dictionary_and_missing_id_records` |
+| 16 | `processed_event_ids` is malformed (`None`) | Return the order safely without applying an event | Pass | `test_invalid_processed_event_id_collection_does_not_raise` |
 
 ## Regression tests added
 
 - `test_duplicate_refund_event_is_idempotent` guards against applying a repeated refund notification twice.
 - `test_missing_or_malformed_event_fields_do_not_change_order` covers absent identifiers/types and an invalid unhashable event type.
-- `tests/test_edge_cases.py` adds five focused tests for partial-refund completion, remaining-due limits, boolean amount rejection, empty event IDs, and simultaneous reconciliation mismatches.
+- `tests/test_edge_cases.py` adds eight focused tests for partial-refund completion, remaining-due limits, invalid amounts/IDs, simultaneous mismatches, and malformed event/order-index inputs.
+- It verifies that non-dictionary event payloads and malformed reconciliation rows do not raise or affect valid records.
 
 ## Remaining failures or limitations
 
