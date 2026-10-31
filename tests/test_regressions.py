@@ -416,3 +416,25 @@ def test_reconcile_orders_treats_none_as_no_rows():
 
 def test_awaiting_refund_csv_treats_none_as_no_rows():
     assert awaiting_refund_csv(None)=="order_id,status,refund_due_paise,refunded_paise,outstanding_paise\n"
+
+
+# Follow-up 9: the dict returned by apply_events could not be passed straight
+# on: the CSV crashed on its keys, apply_events and reconcile_orders treated
+# every order as invalid, and a non-dict row crashed the CSV.
+
+def test_awaiting_refund_csv_accepts_the_apply_events_result():
+    result,_=apply_events([refundable_order(300,"A")],[])
+    assert awaiting_refund_csv(result).splitlines()[1:]==["A,CANCELLED,300,0,300"]
+
+
+def test_apply_events_and_reconcile_accept_the_apply_events_result():
+    result,_=apply_events([refundable_order(300,"A")],[])
+    again,skipped=apply_events(result,[{"event_id":"r1","order_id":"A","type":"refund_processed","amount_paise":300}])
+    assert skipped["invalid_orders"]==[]
+    assert again["A"]["payment_status"]=="REFUNDED"
+    assert reconcile_orders(result,[{"order_id":"A","amount_paise":300,"status":"CANCELLED"}])["matched"]==["A"]
+
+
+def test_awaiting_refund_csv_skips_rows_that_are_not_orders():
+    lines=awaiting_refund_csv([None,"junk",refundable_order(300,"A")]).splitlines()
+    assert lines[1:]==["A,CANCELLED,300,0,300"]

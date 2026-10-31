@@ -105,8 +105,11 @@ def apply_order_event(order: dict, event: dict) -> dict:
 
 
 def _rows(value) -> list:
-    """Batch input as a list; None means no rows."""
-    return [] if value is None else list(value)
+    """Batch input as a list. None means no rows, and a dict (such as the orders
+    returned by apply_events) is used by its values."""
+    if value is None:
+        return []
+    return list(value.values()) if isinstance(value,dict) else list(value)
 
 
 def apply_events(orders: list[dict], events: list[dict]) -> tuple[dict, dict]:
@@ -150,7 +153,8 @@ def awaiting_refund_csv(orders) -> str:
     buf=io.StringIO()
     writer=csv.writer(buf,lineterminator="\n")
     writer.writerow(AWAITING_REFUND_COLUMNS)
-    for o in sorted(_rows(orders),key=lambda o:str(o.get("order_id"))):
+    rows=[o for o in _rows(orders) if isinstance(o,dict)]
+    for o in sorted(rows,key=lambda o:str(o.get("order_id"))):
         due,paid=o.get("refund_due_paise",0),o.get("refunded_paise",0)
         if _is_paise(due) and _is_paise(paid) and due>paid:
             writer.writerow([o.get("order_id"),o.get("status"),due,paid,due-paid])
