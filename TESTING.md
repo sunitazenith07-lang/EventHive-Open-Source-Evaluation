@@ -3,6 +3,10 @@
 Complete this file with test evidence from your own work. Include at least five edge cases. Do not claim a test passed unless you ran it.
 
 ## Test command and environment
+- Python version:
+- Command run:
+- Actual test summary:
+
 - Python version: Python 3.13.15
 - Command run: `python -m pytest -q`
 - Actual test summary: `225 passed in 0.72s` (Initial baseline: `62 failed, 150 passed in 1.21s`)
@@ -11,6 +15,11 @@ Complete this file with test evidence from your own work. Include at least five 
 
 | # | Case / input | Expected behaviour | Actual result | Test name or evidence |
 |---|---|---|---|---|
+| 1 | | | | |
+| 2 | | | | |
+| 3 | | | | |
+| 4 | | | | |
+| 5 | | | | |
 | 1 | Event replay idempotency: Order `O1` receiving `payment_confirmed` (`event_id="e1"`) twice | Second application is a no-op; state remains `PAID`, `processed_event_ids` contains `["e1"]` exactly once | `processed_event_ids: ["e1"]`, `payment_status: "PAID"` | `tests/test_contract.py::test_duplicate_event_is_idempotent`, `tests/test_regression.py::test_refund_processed_replay_idempotency` |
 | 2 | Cancellation attempted after dispatch: Order in `OUT_FOR_DELIVERY` receives `cancel_requested` | Order status must remain `OUT_FOR_DELIVERY`; cancellation is rejected and refund due remains 0 | `status: "OUT_FOR_DELIVERY"`, `refund_due_paise: 0` | `tests/test_contract.py::test_cancel_after_dispatch_is_ignored`, `tests/test_acceptance_matrix.py::test_order_state_transition_matrix[OUT_FOR_DELIVERY-cancel_requested-OUT_FOR_DELIVERY]` |
 | 3 | Boolean refund amount rejection: Order `CANCELLED` & `PAID` receives refund with `amount_paise=True` or `False` | Reject refund because boolean is not integer paise; refund credited must be 0 and payment status remains `PAID` | `refunded_paise: 0`, `payment_status: "PAID"` | `tests/test_acceptance_matrix.py::test_invalid_refund_amounts_are_ignored[True]`, `tests/test_regression.py::test_boolean_refund_amount_rejected` |
@@ -33,5 +42,6 @@ List the defects fixed and the tests added to prevent them from returning.
    - Regression test: `tests/test_regression.py::test_summarise_orders_by_state_stretch`.
 
 ## Remaining failures or limitations
+- List any known failing tests or unresolved behaviours honestly.
 - Remaining failing tests: **None (0 failures)**. All 225 tests pass.
 - Limitations: In-memory dictionary processing assumes datasets fit within system RAM. For distributed streaming pipelines, storage backends (PostgreSQL, Kafka, Redis) should manage event offset tracking and database ACID transaction guarantees.

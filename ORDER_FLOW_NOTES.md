@@ -3,10 +3,14 @@
 Complete this file with your own actual examples and results. Do not leave prompts unanswered.
 
 ## 1. Example order-event sequence
+- List the events in order, the expected state after each event, and the actual state your implementation returns.
 Order initialized: `new_order("ORD-8801", 6500)` -> Status: `PLACED`, Payment: `UNPAID`, Refund Due: `0`, Refunded: `0`.
-
 | Step | Event | Expected order/payment/refund state | Actual result |
 |---|---|---|---|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+| 4 | | | |
 | 1 | `payment_confirmed` (`event_id="EV-1"`) | `status="PLACED"`, `payment_status="PAID"`, `refund_due_paise=0`, `refunded_paise=0`, `processed_event_ids=["EV-1"]` | `status="PLACED"`, `payment_status="PAID"`, `refund_due_paise=0`, `refunded_paise=0`, `processed_event_ids=["EV-1"]` |
 | 2 | `restaurant_accepted` (`event_id="EV-2"`) | `status="ACCEPTED"`, `payment_status="PAID"`, `refund_due_paise=0`, `refunded_paise=0`, `processed_event_ids=["EV-1", "EV-2"]` | `status="ACCEPTED"`, `payment_status="PAID"`, `refund_due_paise=0`, `refunded_paise=0`, `processed_event_ids=["EV-1", "EV-2"]` |
 | 3 | `cancel_requested` (`event_id="EV-3"`) | `status="CANCELLED"`, `payment_status="PAID"`, `refund_due_paise=6500`, `refunded_paise=0`, `processed_event_ids=["EV-1", "EV-2", "EV-3"]` | `status="CANCELLED"`, `payment_status="PAID"`, `refund_due_paise=6500`, `refunded_paise=0`, `processed_event_ids=["EV-1", "EV-2", "EV-3"]` |
@@ -15,6 +19,10 @@ Order initialized: `new_order("ORD-8801", 6500)` -> Status: `PLACED`, Payment: `
 | 6 | `refund_processed` (`event_id="EV-5"` duplicate replay) | No-op due to event idempotency; state remains unchanged | State unchanged; `processed_event_ids` retains `["EV-1", "EV-2", "EV-3", "EV-4", "EV-5"]` |
 
 ## 2. Three edge cases
+- For each, state the input/event sequence, expected behaviour, actual observed result, and test that verifies it.
+- 1.
+- 2.
+- 3.
 1. **Cancellation After Dispatch**:
    - *Input/Event Sequence*: Order transitions `PLACED` -> `ACCEPTED` -> `dispatch_started` (`OUT_FOR_DELIVERY`), then receives `cancel_requested`.
    - *Expected Behaviour*: The cancellation request is ignored; order status remains `OUT_FOR_DELIVERY` and `refund_due_paise` remains 0.
@@ -32,6 +40,7 @@ Order initialized: `new_order("ORD-8801", 6500)` -> Status: `PLACED`, Payment: `
    - *Test Evidence*: `tests/test_acceptance_matrix.py::test_refunds_cannot_exceed_due[4000-2000]`.
 
 ## 3. Assumptions and limitations
+- Document assumptions about cancellation eligibility, dispatch transitions, refund due/refunded amounts, and any unresolved issue.
 - **Cancellation Eligibility**: Cancellation is permitted strictly when order status is `PLACED` or `ACCEPTED`. Once dispatch begins (`OUT_FOR_DELIVERY` or `DELIVERED`), cancellations are rejected.
 - **Refund Eligibility**: Refunds apply exclusively to `CANCELLED` or `REJECTED` orders where `payment_status == "PAID"`. Orders in `PLACED`, `ACCEPTED`, or `DELIVERED` status are not eligible for direct processing via standard `refund_processed` events without prior cancellation/rejection.
 - **Idempotency Scope**: An event is identified by its `event_id`. Replays of an identical `event_id` are ignored.
