@@ -1,24 +1,35 @@
-# optimizations.md - Required submission
+# 1. Baseline and objective
 
-Document optimizations you considered or implemented. Do not claim a speedup or improvement unless you measured it.
+- The main issue was correctness, not speed.
+- Some events were processed twice, invalid refunds were accepted and reconciliation sometimes gave wrong results.
+- Tests showed these problems.
 
-## 1. Baseline and objective
-- What needed improvement (correctness, clarity, time complexity, memory, repeated work, maintainability)?
-- What evidence suggested there was room to improve?
+# 2. Options considered
 
-## 2. Options considered
-For each option, explain the expected benefit and risk. Include ideas you rejected and why.
+- I decided to add simple checks in the existing code.
+- I also thought about rewriting the functions, but avoided it because it would make bigger changes.
+- I did not try performance optimization because I didn't find any measured speed issue.
 
-## 3. Changes implemented
-- Change:
-- Reason:
-- Tests used to protect correctness:
-- Measurement method and result (only if measured):
+# 3. Changes implemented
 
-## 4. Trade-offs
-Explain any trade-off involving simplicity, correctness, performance, or maintainability.
+- **Change:** Added checks for duplicate events.
+- **Reason:** So the same event is not processed again.
+- **Tests:** Duplicate event test cases.
 
-## 5. Further improvements
-What would you do next with more time? Explain the expected benefit and how you would validate it.
+- **Change:** Added refund validation.
+- **Reason:** To stop invalid or extra refunds.
+- **Tests:** Refund amount and eligibility test cases.
 
-If you made no optimization change, state that honestly and compare at least two reasonable options. Correctness and maintainability take priority over unnecessary complexity.
+- **Change:** Improved reconciliation checks.
+- **Reason:** So orders with different statuses are not marked as matched.
+- **Tests:** Reconciliation test cases.
+
+- **Measurement:** I did not measure speed or memory improvement.
+
+# 4. Trade-offs
+
+I kept the changes small and used basic conditions instead of rewriting everything. This made the code easier to understand and reduced unnecessary changes.
+
+# 5. Further improvements
+
+If I get more time, I would add more edge case tests and check performance with larger data. If it is actually slow, then I would try to optimize it.
