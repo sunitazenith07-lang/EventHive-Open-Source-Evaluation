@@ -23,10 +23,7 @@
     -Test: test_payment_after_cancellation_creates_refund_due
 
 ## 3. Assumptions and limitations
--Cancel only from PLACED or ACCEPTED.
--Dispatch only from ACCEPTED; deliver only from OUT_FOR_DELIVERY.
+-Cancel only before dispatch (PLACED or ACCEPTED).
 -Paid order cancelled or rejected: refund due = total.
--Refund: positive whole paise, paid CANCELLED/REJECTED order, not more than what's left.
--REFUNDED only when refunded = due.
--Each event ID is used once.
--Limitations: out-of-order events ignored; no cancellation fees; delivered orders can't be refunded.
+-Refunds can't exceed what's left; REFUNDED only when refunded = due.
+-Limitations: out-of-order events ignored; no cancellation fees.
